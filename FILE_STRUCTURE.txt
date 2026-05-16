@@ -1,0 +1,111 @@
+📁 TIRANA EVENTS - COMPLETE FILE STRUCTURE
+═══════════════════════════════════════════════════════════
+
+📦 Project Root
+├── 📄 README.md                    # Complete documentation
+├── 📄 SETUP.md                     # Setup instructions
+├── 📄 QUICK_START.md               # 5-minute quick start
+├── 📄 PROJECT_SUMMARY.md           # Project overview
+├── 📄 FILE_STRUCTURE.txt           # This file
+├── 🚀 START_BACKEND.sh             # Quick backend start script
+├── 🚀 START_MOBILE.sh              # Quick mobile start script
+│
+├── 📱 mobile/                      # REACT NATIVE APP
+│   ├── 📄 package.json             # Dependencies & scripts
+│   ├── 📄 app.json                 # Expo configuration
+│   ├── 📄 babel.config.js          # Babel config
+│   ├── 📄 App.js                   # Main app entry
+│   ├── 📄 .gitignore               # Git ignore
+│   │
+│   └── 📂 src/
+│       ├── 📂 context/
+│       │   └── 📄 AuthContext.js   # Authentication state
+│       │
+│       ├── 📂 screens/
+│       │   ├── 📄 LoginScreen.js           # Login UI
+│       │   ├── 📄 RegisterScreen.js        # Registration UI
+│       │   ├── 📄 HomeScreen.js            # Main feed
+│       │   ├── 📄 ExploreScreen.js         # Map view
+│       │   ├── 📄 EventDetailScreen.js     # Event details
+│       │   ├── 📄 CreateEventScreen.js     # Create event
+│       │   ├── 📄 TicketsScreen.js         # My tickets
+│       │   └── 📄 ProfileScreen.js         # User profile
+│       │
+│       └── 📂 services/
+│           └── 📄 api.js           # API configuration
+│
+└── ⚙️  backend/                    # SPRING BOOT API
+    ├── 📄 pom.xml                  # Maven dependencies
+    ├── 📄 .gitignore               # Git ignore
+    ├── 📄 mvnw                     # Maven wrapper (Unix)
+    ├── 📄 mvnw.cmd                 # Maven wrapper (Windows)
+    │
+    └── 📂 src/main/
+        ├── 📂 java/com/tirana/events/
+        │   ├── �� TiranaEventsApplication.java  # Main class
+        │   │
+        │   ├── 📂 config/
+        │   │   └── 📄 DataInitializer.java      # Sample data
+        │   │
+        │   ├── 📂 controller/
+        │   │   ├── 📄 AuthController.java       # Auth endpoints
+        │   │   ├── 📄 EventController.java      # Event endpoints
+        │   │   ├── 📄 TicketController.java     # Ticket endpoints
+        │   │   └── 📄 CategoryController.java   # Category endpoints
+        │   │
+        │   ├── 📂 dto/
+        │   │   ├── 📄 AuthRequest.java          # Login request
+        │   │   ├── 📄 AuthResponse.java         # Login response
+        │   │   ├── 📄 RegisterRequest.java      # Register request
+        │   │   ├── 📄 EventDTO.java             # Event data
+        │   │   └── 📄 CreateEventRequest.java   # Create event
+        │   │
+        │   ├── 📂 model/
+        │   │   ├── 📄 User.java                 # User entity
+        │   │   ├── 📄 Event.java                # Event entity
+        │   │   ├── 📄 Ticket.java               # Ticket entity
+        │   │   └── 📄 Category.java             # Category entity
+        │   │
+        │   ├── 📂 repository/
+        │   │   ├── 📄 UserRepository.java       # User data access
+        │   │   ├── 📄 EventRepository.java      # Event queries
+        │   │   ├── 📄 TicketRepository.java     # Ticket access
+        │   │   └── 📄 CategoryRepository.java   # Category access
+        │   │
+        │   ├── 📂 security/
+        │   │   ├── 📄 SecurityConfig.java       # Security setup
+        │   │   ├── 📄 JwtUtil.java              # JWT utilities
+        │   │   └── 📄 JwtAuthenticationFilter.java  # Auth filter
+        │   │
+        │   └── 📂 service/
+        │       ├── 📄 AuthService.java          # Auth logic
+        │       ├── 📄 EventService.java         # Event logic
+        │       ├── 📄 TicketService.java        # Ticket logic
+        │       └── 📄 CustomUserDetailsService.java  # User details
+        │
+        └── 📂 resources/
+            └── 📄 application.properties        # App configuration
+
+═══════════════════════════════════════════════════════════
+
+📊 STATISTICS:
+  • Mobile: 10 JavaScript files
+  • Backend: 26 Java files
+  • Total: 36 source files + configs
+  • Documentation: 5 markdown files
+  • Scripts: 2 shell scripts
+
+🎯 FEATURES:
+  ✅ Authentication (Login/Register)
+  ✅ Event Management (CRUD)
+  ✅ Ticket System with QR Codes
+  ✅ Interactive Maps
+  ✅ Search & Categories
+  ✅ User Profiles
+  ✅ Sample Data Included
+
+🚀 READY TO RUN!
+  Backend: cd backend && ./mvnw spring-boot:run
+  Mobile:  cd mobile && npm install && npm start
+
+═══════════════════════════════════════════════════════════
