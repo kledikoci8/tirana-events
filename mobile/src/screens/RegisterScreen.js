@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegisterScreen({ navigation }) {
@@ -37,7 +38,10 @@ export default function RegisterScreen({ navigation }) {
         style={styles.content}
       >
         <View style={styles.header}>
-          <Text style={styles.logo}>🎉 TIRANA</Text>
+          <View style={styles.logoContainer}>
+            <Ionicons name="calendar" size={32} color="#8B5CF6" />
+          </View>
+          <Text style={styles.logo}>TIRANA</Text>
           <Text style={styles.logoSub}>EVENTS</Text>
           <Text style={styles.tagline}>Create your account</Text>
         </View>
@@ -105,6 +109,17 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 48,
+  },
+  logoContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(139,92,246,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.3)',
   },
   logo: {
     fontSize: 32,

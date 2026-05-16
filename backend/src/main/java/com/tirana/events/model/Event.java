@@ -55,4 +55,15 @@ public class Event {
     
     @ManyToMany(mappedBy = "savedEvents")
     private Set<User> savedByUsers = new HashSet<>();
+    
+    // New fields for filtering
+    private Double price; // Price in ALL (Albanian Lek)
+    private Boolean isFree = false;
+    private Integer ticketsAvailable;
+    private Boolean isOutdoor = false;
+    
+    // Accessibility features
+    private Boolean wheelchairAccessible = false;
+    private Boolean hearingLoopAvailable = false;
+    private Boolean seatedVenue = false;
 }

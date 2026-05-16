@@ -29,12 +29,20 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
+        // Only initialize data if database is empty
+        if (categoryRepository.count() > 0) {
+            System.out.println("Database already initialized. Skipping data initialization.");
+            return;
+        }
+        
+        System.out.println("Initializing database with demo data...");
+        
         // Create categories
-        Category music = createCategory("Music", "🎵", "#8B5CF6");
-        Category university = createCategory("University", "🎓", "#3B82F6");
-        Category culture = createCategory("Culture", "🎭", "#EF4444");
-        Category volunteering = createCategory("Volunteering", "🤝", "#10B981");
-        Category more = createCategory("More", "⋯", "#6B7280");
+        Category music = createCategory("Music", "musical-notes", "#8B5CF6");
+        Category university = createCategory("University", "school", "#3B82F6");
+        Category culture = createCategory("Culture", "color-palette", "#EF4444");
+        Category volunteering = createCategory("Volunteering", "people", "#10B981");
+        Category more = createCategory("More", "ellipsis-horizontal", "#6B7280");
         
         // Create demo user
         User demoUser = new User();
@@ -83,6 +91,8 @@ public class DataInitializer implements CommandLineRunner {
                    LocalDateTime.now().plusDays(12),
                    "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5",
                    volunteering, demoUser, 100);
+        
+        System.out.println("Database initialization completed!");
     }
     
     private Category createCategory(String name, String icon, String color) {

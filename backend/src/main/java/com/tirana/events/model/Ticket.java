@@ -33,7 +33,30 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private TicketStatus status = TicketStatus.ACTIVE;
     
+    // Wallet integration
+    private String walletPassUrl;
+    private Boolean nfcEnabled = false;
+    private String nfcData;
+    
+    // Offline access
+    private LocalDateTime downloadedAt;
+    private Boolean isDownloaded = false;
+    
+    // Transfer
+    @ManyToOne
+    @JoinColumn(name = "transferred_to_id")
+    private User transferredTo;
+    
+    private LocalDateTime transferredAt;
+    
+    // Check-in
+    private LocalDateTime checkedInAt;
+    private String checkedInBy; // Staff member or scanner ID
+    
     public enum TicketStatus {
-        ACTIVE, USED, CANCELLED
+        ACTIVE, 
+        USED, 
+        CANCELLED,
+        TRANSFERRED
     }
 }

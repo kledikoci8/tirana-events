@@ -21,4 +21,5 @@ public class EventDTO {
     private Integer maxAttendees;
     private Integer currentAttendees;
     private boolean isSaved;
+    private LocalDateTime createdAt;
 }

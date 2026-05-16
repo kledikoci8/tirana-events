@@ -1,0 +1,280 @@
+═══════════════════════════════════════════════════════════════
+  TIRANA EVENTS - QUICK START GUIDE
+═══════════════════════════════════════════════════════════════
+
+🚀 STEP-BY-STEP SETUP INSTRUCTIONS
+
+═══════════════════════════════════════════════════════════════
+1️⃣  DATABASE SETUP
+═══════════════════════════════════════════════════════════════
+
+1. Make sure MySQL is running on your machine
+
+2. Run the migration script:
+   
+   cd "/Users/kledi/Desktop/Events tirana/backend"
+   mysql -u root -p tirana-events < database-migrations.sql
+
+   (Enter your MySQL password when prompted)
+
+3. Verify tables were created:
+   
+   mysql -u root -p tirana-events
+   SHOW TABLES;
+   
+   You should see 20+ tables including:
+   - user_interactions
+   - user_preferences
+   - friend_activities
+   - event_chats
+   - event_invites
+   - filter_presets
+   - device_tokens
+   - push_notifications
+   - event_analytics
+
+═══════════════════════════════════════════════════════════════
+2️⃣  BACKEND SETUP
+═══════════════════════════════════════════════════════════════
+
+1. Navigate to backend folder:
+   
+   cd "/Users/kledi/Desktop/Events tirana/backend"
+
+2. Clean and build the project:
+   
+   ./mvnw clean install
+
+   (This will download dependencies and compile the code)
+
+3. Run the Spring Boot application:
+   
+   ./mvnw spring-boot:run
+
+4. Verify backend is running:
+   
+   Open browser: http://localhost:8080
+   
+   You should see the Spring Boot default page or error page
+   (This is normal - the API endpoints are ready)
+
+5. Test an endpoint:
+   
+   curl http://localhost:8080/api/categories
+   
+   (You might get 401 Unauthorized - that's expected without auth)
+
+═══════════════════════════════════════════════════════════════
+3️⃣  FRONTEND SETUP
+═══════════════════════════════════════════════════════════════
+
+1. Navigate to mobile folder:
+   
+   cd "/Users/kledi/Desktop/Events tirana/mobile"
+
+2. Install dependencies:
+   
+   npm install
+
+   (This will take a few minutes)
+
+3. Find your local IP address:
+   
+   On Mac: ifconfig | grep "inet " | grep -v 127.0.0.1
+   
+   Look for something like: 192.168.1.XXX
+
+4. Update API URL in the service file:
+   
+   Open: mobile/src/services/personalizationService.js
+   
+   Change line 4:
+   const API_URL = 'http://YOUR_IP_HERE:8080/api';
+   
+   Example:
+   const API_URL = 'http://192.168.1.100:8080/api';
+
+5. Start the Expo development server:
+   
+   npm start
+
+6. Run on device/simulator:
+   
+   - Press 'i' for iOS Simulator
+   - Press 'a' for Android Emulator
+   - Scan QR code with Expo Go app on your phone
+
+═══════════════════════════════════════════════════════════════
+4️⃣  OPTIONAL: FIREBASE SETUP (For Push Notifications)
+═══════════════════════════════════════════════════════════════
+
+If you want push notifications to work:
+
+1. Go to Firebase Console: https://console.firebase.google.com
+
+2. Create a new project or use existing one
+
+3. Download service account key:
+   - Project Settings → Service Accounts
+   - Click "Generate new private key"
+   - Save as: firebase-service-account.json
+
+4. Place the file here:
+   backend/src/main/resources/firebase-service-account.json
+
+5. Restart the backend
+
+Note: Push notifications will be disabled if Firebase is not configured,
+but all other features will work fine!
+
+═══════════════════════════════════════════════════════════════
+5️⃣  TESTING THE APP
+═══════════════════════════════════════════════════════════════
+
+1. Register a new user:
+   - Open the app
+   - Click "Register"
+   - Fill in details
+   - Submit
+
+2. Complete onboarding:
+   - Select 5 interests
+   - Click "Continue"
+
+3. Test personalized feed:
+   - Home screen should show personalized events
+   - Events in next 48 hours appear at top
+
+4. Test social features:
+   - Go to Profile → Friends
+   - Follow other users
+   - View friend activity
+
+5. Test filters:
+   - Go to Explore tab
+   - Click filter icon
+   - Apply various filters
+   - Save a filter preset
+
+6. Test notifications:
+   - Go to Profile → Settings → Notifications
+   - Enable/disable notification types
+   - Set quiet hours
+
+7. Test analytics (if you're an organizer):
+   - Create an event
+   - Go to event details
+   - Click "Analytics" button
+   - View live stats
+
+═══════════════════════════════════════════════════════════════
+🐛 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+BACKEND ISSUES:
+────────────────────────────────────────────────────────────────
+
+Problem: "Port 8080 already in use"
+Solution: Kill the process using port 8080
+   lsof -ti:8080 | xargs kill -9
+
+Problem: "Cannot connect to database"
+Solution: Check MySQL is running
+   brew services list | grep mysql
+   brew services start mysql
+
+Problem: "Table doesn't exist"
+Solution: Run migrations again
+   mysql -u root -p tirana-events < database-migrations.sql
+
+FRONTEND ISSUES:
+────────────────────────────────────────────────────────────────
+
+Problem: "Network request failed"
+Solution: 
+   1. Check backend is running (http://localhost:8080)
+   2. Update API_URL with your local IP
+   3. Make sure phone/simulator is on same WiFi
+
+Problem: "Cannot find module"
+Solution: Reinstall dependencies
+   rm -rf node_modules package-lock.json
+   npm install
+
+Problem: "Expo Go app crashes"
+Solution: Clear cache and restart
+   npm start -- --clear
+
+═══════════════════════════════════════════════════════════════
+📝 USEFUL COMMANDS
+═══════════════════════════════════════════════════════════════
+
+BACKEND:
+   ./mvnw clean install          # Build project
+   ./mvnw spring-boot:run        # Run application
+   ./mvnw test                   # Run tests
+   ./mvnw clean                  # Clean build files
+
+FRONTEND:
+   npm install                   # Install dependencies
+   npm start                     # Start Expo dev server
+   npm start -- --clear          # Start with cache cleared
+   npm run android               # Run on Android
+   npm run ios                   # Run on iOS
+
+DATABASE:
+   mysql -u root -p              # Connect to MySQL
+   SHOW DATABASES;               # List databases
+   USE tirana-events;            # Select database
+   SHOW TABLES;                  # List tables
+   DESCRIBE table_name;          # Show table structure
+
+═══════════════════════════════════════════════════════════════
+✅ VERIFICATION CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+Backend:
+□ MySQL is running
+□ Database 'tirana-events' exists
+□ All tables created (20+ tables)
+□ Backend compiles without errors
+□ Backend runs on http://localhost:8080
+□ Can access API endpoints
+
+Frontend:
+□ Dependencies installed (node_modules exists)
+□ API_URL updated with local IP
+□ Expo dev server starts
+□ App loads on device/simulator
+□ Can register new user
+□ Can login
+
+Features:
+□ Onboarding screen appears for new users
+□ Personalized feed shows events
+□ Can view event details
+□ Can follow/unfollow users
+□ Can apply filters
+□ Can view notifications settings
+□ Analytics dashboard works (for organizers)
+
+═══════════════════════════════════════════════════════════════
+📞 NEED HELP?
+═══════════════════════════════════════════════════════════════
+
+Check these files for reference:
+- PRIORITY_1_COMPLETE.txt - Full feature documentation
+- IMPLEMENTATION_PLAN.md - Detailed implementation plan
+- IMPLEMENTATION_STATUS.md - Current status
+
+Common issues:
+1. Backend won't start → Check MySQL connection
+2. Frontend can't connect → Update API_URL with your IP
+3. Compilation errors → Run ./mvnw clean install
+4. App crashes → Clear cache: npm start -- --clear
+
+═══════════════════════════════════════════════════════════════
+
+🎉 You're all set! Enjoy building Tirana Events!
+
+═══════════════════════════════════════════════════════════════

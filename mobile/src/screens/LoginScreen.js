@@ -165,7 +165,7 @@ export default function LoginScreen({ navigation }) {
               colors={['#8B5CF6', '#EC4899']}
               style={styles.logoGradient}
             >
-              <Text style={styles.logoIcon}>🎉</Text>
+              <Ionicons name="calendar" size={40} color="#FFFFFF" />
             </LinearGradient>
           </View>
           <Text style={styles.logoText}>TIRANA</Text>
@@ -374,9 +374,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoIcon: {
-    fontSize: 40,
   },
   logoText: {
     fontSize: 36,

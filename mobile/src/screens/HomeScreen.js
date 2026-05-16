@@ -116,7 +116,11 @@ export default function HomeScreen({ navigation }) {
           style={styles.categoryIconContainer}
         >
           <BlurView intensity={20} tint="dark" style={styles.categoryBlur}>
-            <Text style={styles.categoryEmoji}>{item.icon}</Text>
+            <Ionicons 
+              name={item.icon} 
+              size={32} 
+              color={selectedCategory === item.id ? '#FFFFFF' : '#8B5CF6'} 
+            />
           </BlurView>
         </LinearGradient>
         <Text style={styles.categoryText}>{item.name}</Text>
@@ -260,110 +264,116 @@ export default function HomeScreen({ navigation }) {
         style={StyleSheet.absoluteFill}
       />
 
-      <ScrollView
+      <FlatList
+        data={events}
+        renderItem={renderEvent}
+        keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.eventsList}
         onScroll={(e) => {
           scrollY.value = e.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-      >
-        {/* Header */}
-        <Animated.View style={[styles.header, headerAnimatedStyle]}>
-          <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.logo}>🎉 TIRANA</Text>
-              <Text style={styles.logoSub}>EVENTS</Text>
-            </View>
-            <TouchableOpacity style={styles.notificationButton}>
-              <BlurView intensity={20} tint="dark" style={styles.notificationBlur}>
-                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-                <Animated.View style={[styles.notificationBadge, badgeAnimatedStyle]} />
-              </BlurView>
-            </TouchableOpacity>
-          </View>
-
-          {/* Title Section */}
-          <Animated.View
-            entering={FadeInDown.delay(200).springify()}
-            style={styles.titleSection}
-          >
-            <Text style={styles.title}>What's happening</Text>
-            <View style={styles.titleHighlightContainer}>
-              <Text style={styles.titleHighlight}>in Tirana </Text>
-              <Text style={styles.titleEmoji}>today? 🔥</Text>
-            </View>
-          </Animated.View>
-
-          {/* Search Bar */}
-          <Animated.View
-            entering={FadeInDown.delay(300).springify()}
-            style={styles.searchWrapper}
-          >
-            <BlurView intensity={30} tint="dark" style={styles.searchBlur}>
-              <LinearGradient
-                colors={['rgba(139,92,246,0.1)', 'rgba(109,40,217,0.05)']}
-                style={styles.searchContainer}
-              >
-                <Ionicons name="search-outline" size={20} color="#8B5CF6" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search events, concerts, festivals..."
-                  placeholderTextColor="#6B7280"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  onSubmitEditing={handleSearch}
-                />
-                <TouchableOpacity style={styles.filterButton}>
-                  <LinearGradient
-                    colors={['#8B5CF6', '#6D28D9']}
-                    style={styles.filterGradient}
-                  >
-                    <Ionicons name="options-outline" size={18} color="#FFFFFF" />
-                  </LinearGradient>
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <Animated.View style={[styles.header, headerAnimatedStyle]}>
+              <View style={styles.headerTop}>
+                <View style={styles.logoWrapper}>
+                  <View style={styles.logoIconWrapper}>
+                    <Ionicons name="calendar" size={20} color="#8B5CF6" />
+                  </View>
+                  <View>
+                    <Text style={styles.logo}>TIRANA</Text>
+                    <Text style={styles.logoSub}>EVENTS</Text>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.notificationButton}>
+                  <BlurView intensity={20} tint="dark" style={styles.notificationBlur}>
+                    <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+                    <Animated.View style={[styles.notificationBadge, badgeAnimatedStyle]} />
+                  </BlurView>
                 </TouchableOpacity>
-              </LinearGradient>
-            </BlurView>
-          </Animated.View>
-        </Animated.View>
+              </View>
 
-        {/* Categories */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Categories</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See all →</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            horizontal
-            data={categories}
-            renderItem={renderCategory}
-            keyExtractor={(item) => item.id.toString()}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesList}
-          />
-        </View>
+              {/* Title Section */}
+              <Animated.View
+                entering={FadeInDown.delay(200).springify()}
+                style={styles.titleSection}
+              >
+                <Text style={styles.title}>What's happening</Text>
+                <View style={styles.titleHighlightContainer}>
+                  <Text style={styles.titleHighlight}>in Tirana </Text>
+                  <Text style={styles.titleHighlight}>today?</Text>
+                  <Ionicons name="flame" size={32} color="#EF4444" style={{ marginLeft: 8 }} />
+                </View>
+              </Animated.View>
 
-        {/* Recommended Events */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>Recommended for you</Text>
-              <Text style={styles.sectionSubtitle}>Based on your interests</Text>
+              {/* Search Bar */}
+              <Animated.View
+                entering={FadeInDown.delay(300).springify()}
+                style={styles.searchWrapper}
+              >
+                <BlurView intensity={30} tint="dark" style={styles.searchBlur}>
+                  <LinearGradient
+                    colors={['rgba(139,92,246,0.1)', 'rgba(109,40,217,0.05)']}
+                    style={styles.searchContainer}
+                  >
+                    <Ionicons name="search-outline" size={20} color="#8B5CF6" />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search events, concerts, festivals..."
+                      placeholderTextColor="#6B7280"
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      onSubmitEditing={handleSearch}
+                    />
+                    <TouchableOpacity style={styles.filterButton}>
+                      <LinearGradient
+                        colors={['#8B5CF6', '#6D28D9']}
+                        style={styles.filterGradient}
+                      >
+                        <Ionicons name="options-outline" size={18} color="#FFFFFF" />
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                </BlurView>
+              </Animated.View>
+            </Animated.View>
+
+            {/* Categories */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Categories</Text>
+                <TouchableOpacity>
+                  <Text style={styles.seeAll}>See all →</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                horizontal
+                data={categories}
+                renderItem={renderCategory}
+                keyExtractor={(item) => item.id.toString()}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesList}
+              />
             </View>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See all →</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={events}
-            renderItem={renderEvent}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.eventsList}
-          />
-        </View>
-      </ScrollView>
+
+            {/* Recommended Events Header */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View>
+                  <Text style={styles.sectionTitle}>Recommended for you</Text>
+                  <Text style={styles.sectionSubtitle}>Based on your interests</Text>
+                </View>
+                <TouchableOpacity>
+                  <Text style={styles.seeAll}>See all →</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        }
+      />
     </View>
   );
 }
@@ -383,6 +393,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
+  },
+  logoWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(139,92,246,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.3)',
   },
   logo: {
     fontSize: 22,
@@ -437,9 +462,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#8B5CF6',
     letterSpacing: -0.5,
-  },
-  titleEmoji: {
-    fontSize: 32,
   },
   searchWrapper: {
     borderRadius: 20,
@@ -518,9 +540,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  categoryEmoji: {
-    fontSize: 32,
   },
   categoryText: {
     fontSize: 12,
