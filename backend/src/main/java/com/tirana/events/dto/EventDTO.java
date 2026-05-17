@@ -22,4 +22,11 @@ public class EventDTO {
     private Integer currentAttendees;
     private boolean isSaved;
     private LocalDateTime createdAt;
+    
+    // Additional fields for specific features
+    private Double price;
+    private Boolean isFree;
+    private String venue;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 }

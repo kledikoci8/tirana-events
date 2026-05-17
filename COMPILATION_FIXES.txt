@@ -1,0 +1,355 @@
+═══════════════════════════════════════════════════════════════
+  🔧 COMPILATION ERRORS - FIX SCRIPT
+═══════════════════════════════════════════════════════════════
+
+ISSUE: Multiple service files have compilation errors due to:
+1. EventDTO missing fields (startTime, endTime, venue, price)
+2. User model has fullName/profileImage not name/profilePicture
+3. TicketRepository missing methods (findByUserId, existsByUserIdAndEventId)
+4. Ticket model missing fields (price, purchasedAt)
+
+SOLUTION: Add missing fields to DTOs and fix repository methods
+
+═══════════════════════════════════════════════════════════════
+FIX #1: UPDATE EventDTO.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/dto/EventDTO.java
+
+ADD these fields after line 18 (after createdAt):
+
+    // Additional fields for specific features
+    private Double price;
+    private Boolean isFree;
+    private String venue;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+COMPLETE FILE SHOULD LOOK LIKE:
+
+package com.tirana.events.dto;
+
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class EventDTO {
+    private Long id;
+    private String name;
+    private String description;
+    private String location;
+    private Double latitude;
+    private Double longitude;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private String imageUrl;
+    private Long categoryId;
+    private String categoryName;
+    private Long organizerId;
+    private String organizerName;
+    private Integer maxAttendees;
+    private Integer currentAttendees;
+    private boolean isSaved;
+    private LocalDateTime createdAt;
+    
+    // Additional fields for specific features
+    private Double price;
+    private Boolean isFree;
+    private String venue;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+}
+
+═══════════════════════════════════════════════════════════════
+FIX #2: UPDATE TicketRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      TicketRepository.java
+
+ADD these methods:
+
+    List<Ticket> findByUserId(Long userId);
+    boolean existsByUserIdAndEventId(Long userId, Long eventId);
+    Long countByUserId(Long userId);
+
+COMPLETE FILE SHOULD LOOK LIKE:
+
+package com.tirana.events.repository;
+
+import com.tirana.events.model.Event;
+import com.tirana.events.model.Ticket;
+import com.tirana.events.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface TicketRepository extends JpaRepository<Ticket, Long> {
+    List<Ticket> findByUser(User user);
+    Optional<Ticket> findByQrCode(String qrCode);
+    List<Ticket> findByUserAndStatus(User user, Ticket.TicketStatus status);
+    List<Ticket> findByEvent(Event event);
+    boolean existsByUserAndEvent(User user, Event event);
+    Long countByEvent(Event event);
+    
+    // Additional methods for services
+    List<Ticket> findByUserId(Long userId);
+    boolean existsByUserIdAndEventId(Long userId, Long eventId);
+    Long countByUserId(Long userId);
+}
+
+
+═══════════════════════════════════════════════════════════════
+FIX #3: UPDATE EventCheckInRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      EventCheckInRepository.java
+
+ADD this method:
+
+    Long countByUserId(Long userId);
+    List<EventCheckIn> findByUserIdOrderByCheckedInAtDesc(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #4: UPDATE UserTierRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      UserTierRepository.java
+
+ADD this method:
+
+    Optional<UserTier> findByUserId(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #5: UPDATE LoyaltyPointsRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      LoyaltyPointsRepository.java
+
+ADD this method:
+
+    List<LoyaltyPoints> findByUserIdOrderByEarnedAtDesc(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #6: UPDATE UserBadgeRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      UserBadgeRepository.java
+
+ADD this method:
+
+    List<UserBadge> findByUserIdOrderByEarnedAtDesc(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #7: UPDATE SavedItineraryRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      SavedItineraryRepository.java
+
+ADD this method:
+
+    List<SavedItinerary> findByUserIdOrderByUpdatedAtDesc(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #8: UPDATE EventMemoryRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      EventMemoryRepository.java
+
+ADD this method:
+
+    List<EventMemory> findByUserIdOrderByUploadedAtDesc(Long userId);
+
+═══════════════════════════════════════════════════════════════
+FIX #9: UPDATE EventReviewRepository.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/repository/
+      EventReviewRepository.java
+
+ADD this method:
+
+    boolean existsByUserIdAndEventId(Long userId, Long eventId);
+
+═══════════════════════════════════════════════════════════════
+FIX #10: FIX GroupTicketService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      GroupTicketService.java
+
+FIND (around line 88-90):
+        ticket.setPrice(participant.getAmountOwed());
+        ticket.setPurchasedAt(LocalDateTime.now());
+
+REPLACE WITH:
+        // Note: Ticket model doesn't have price or purchasedAt fields
+        // Price is stored in GroupTicketParticipant.amountOwed
+        // purchaseDate is set automatically in Ticket constructor
+
+FIND (around line 140):
+        dto.setOrganizerName(groupTicket.getOrganizer().getName());
+
+REPLACE WITH:
+        dto.setOrganizerName(groupTicket.getOrganizer().getFullName());
+
+FIND (around line 162-163):
+        dto.setUserName(participant.getUser().getName());
+        dto.setUserAvatar(participant.getUser().getProfilePicture());
+
+REPLACE WITH:
+        dto.setUserName(participant.getUser().getFullName());
+        dto.setUserAvatar(participant.getUser().getProfileImage());
+
+═══════════════════════════════════════════════════════════════
+FIX #11: FIX CommunityService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      CommunityService.java
+
+FIND (around line 105-106):
+        dto.setUserName(post.getUser().getName());
+        dto.setUserAvatar(post.getUser().getProfilePicture());
+
+REPLACE WITH:
+        dto.setUserName(post.getUser().getFullName());
+        dto.setUserAvatar(post.getUser().getProfileImage());
+
+FIND (around line 129-130):
+        dto.setUserName(comment.getUser().getName());
+        dto.setUserAvatar(comment.getUser().getProfilePicture());
+
+REPLACE WITH:
+        dto.setUserName(comment.getUser().getFullName());
+        dto.setUserAvatar(comment.getUser().getProfileImage());
+
+═══════════════════════════════════════════════════════════════
+FIX #12: FIX ReviewService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      ReviewService.java
+
+FIND (around line 106-107):
+        dto.setUserName(review.getUser().getName());
+        dto.setUserProfilePicture(review.getUser().getProfilePicture());
+
+REPLACE WITH:
+        dto.setUserName(review.getUser().getFullName());
+        dto.setUserProfilePicture(review.getUser().getProfileImage());
+
+═══════════════════════════════════════════════════════════════
+FIX #13: FIX MemoryWallService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      MemoryWallService.java
+
+FIND (around line 101-102):
+        dto.setUserName(memory.getUser().getName());
+        dto.setUserProfilePicture(memory.getUser().getProfilePicture());
+
+REPLACE WITH:
+        dto.setUserName(memory.getUser().getFullName());
+        dto.setUserProfilePicture(memory.getUser().getProfileImage());
+
+═══════════════════════════════════════════════════════════════
+FIX #14: FIX EventSeriesService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      EventSeriesService.java
+
+FIND (around line 32):
+        dto.setOrganizerName(series.getOrganizer().getName());
+
+REPLACE WITH:
+        dto.setOrganizerName(series.getOrganizer().getFullName());
+
+═══════════════════════════════════════════════════════════════
+FIX #15: FIX BadgeService.java
+═══════════════════════════════════════════════════════════════
+
+File: backend/src/main/java/com/tirana/events/service/
+      BadgeService.java
+
+FIND (around line 59):
+        long nightEvents = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> t.getEvent().getStartTime() != null && 
+                        t.getEvent().getStartTime().getHour() >= 22)
+
+REPLACE WITH:
+        long nightEvents = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> t.getEvent().getStartDate() != null && 
+                        t.getEvent().getStartDate().getHour() >= 22)
+
+FIND (around line 85):
+        long earlyTickets = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> t.getPrice() != null && t.getPrice() < t.getEvent().getPrice())
+
+REPLACE WITH:
+        long earlyTickets = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> t.getEvent().getPrice() != null)
+            // Note: Ticket doesn't have price field, this logic needs revision
+
+FIND (around line 99):
+        long weekendEvents = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> {
+                if (t.getEvent().getStartTime() == null) return false;
+
+REPLACE WITH:
+        long weekendEvents = ticketRepository.findByUserId(userId).stream()
+            .filter(t -> {
+                if (t.getEvent().getStartDate() == null) return false;
+
+═══════════════════════════════════════════════════════════════
+QUICK FIX SCRIPT
+═══════════════════════════════════════════════════════════════
+
+Run these commands to apply all fixes:
+
+1. Update EventDTO.java - ADD FIELDS MANUALLY
+
+2. Update TicketRepository.java - ADD METHODS MANUALLY
+
+3. Fix all service files - RUN THESE COMMANDS:
+
+cd "/Users/kledi/Desktop/Events tirana/backend/src/main/java/com/tirana/events/service"
+
+# Fix User.getName() -> User.getFullName()
+find . -name "*.java" -exec sed -i '' 's/\.getName()/\.getFullName()/g' {} \;
+
+# Fix User.getProfilePicture() -> User.getProfileImage()
+find . -name "*.java" -exec sed -i '' 's/\.getProfilePicture()/\.getProfileImage()/g' {} \;
+
+# Fix Event.getStartTime() -> Event.getStartDate() (for hour checks)
+# This one needs manual review as some files legitimately use startTime
+
+═══════════════════════════════════════════════════════════════
+MANUAL FIXES REQUIRED
+═══════════════════════════════════════════════════════════════
+
+These files need manual review and fixes:
+
+1. ItineraryService.java (lines 125-128)
+2. MoodSearchService.java (lines 171-173)
+3. CuratorService.java (lines 149-151)
+4. GroupTicketService.java (lines 88-90, 140, 162-163)
+5. ReviewService.java (lines 38, 106-107)
+6. CommunityService.java (lines 105-106, 129-130)
+7. MemoryWallService.java (lines 101-102)
+8. EventSeriesService.java (line 32)
+9. BadgeService.java (lines 59, 85, 99)
+
+═══════════════════════════════════════════════════════════════
+END OF COMPILATION FIXES
+═══════════════════════════════════════════════════════════════

@@ -16,4 +16,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByEvent(Event event);
     boolean existsByUserAndEvent(User user, Event event);
     Long countByEvent(Event event);
+    
+    // Additional methods for services
+    List<Ticket> findByUserId(Long userId);
+    boolean existsByUserIdAndEventId(Long userId, Long eventId);
+    Long countByUserId(Long userId);
 }

@@ -66,4 +66,22 @@ public class Event {
     private Boolean wheelchairAccessible = false;
     private Boolean hearingLoopAvailable = false;
     private Boolean seatedVenue = false;
+    
+    // Priority 3 additions
+    @ManyToOne
+    @JoinColumn(name = "series_id")
+    private EventSeries series;
+    
+    private String venue; // Venue name
+    private LocalDateTime startTime; // Specific start time
+    private LocalDateTime endTime; // Specific end time
+    
+    // Weather integration
+    private String weatherCondition;
+    private Double weatherTemperature;
+    private Integer weatherPrecipitationChance;
+    
+    // Mood tags for AI discovery
+    @Column(columnDefinition = "TEXT")
+    private String moodTags; // JSON array: ["energetic", "social", "cultural"]
 }

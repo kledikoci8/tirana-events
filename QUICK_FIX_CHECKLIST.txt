@@ -1,0 +1,248 @@
+═══════════════════════════════════════════════════════════════
+  ✅ QUICK FIX CHECKLIST - TIRANA EVENTS
+═══════════════════════════════════════════════════════════════
+
+Print this and check off as you complete each fix!
+
+═══════════════════════════════════════════════════════════════
+🔴 CRITICAL FIXES (DO FIRST)
+═══════════════════════════════════════════════════════════════
+
+☐ FIX #1: Environment Configuration (2 hours)
+  ☐ Create mobile/src/config/api.js
+  ☐ Install expo-constants
+  ☐ Update personalizationService.js
+  ☐ Update all screens with hardcoded URLs
+  ☐ Test in dev/staging/prod modes
+
+☐ FIX #2: JWT Token Refresh (4 hours)
+  ☐ Update AuthResponse.java (add refreshToken)
+  ☐ Create RefreshTokenRequest.java
+  ☐ Add generateRefreshToken() to JwtUtil.java
+  ☐ Add refreshToken() to AuthService.java
+  ☐ Add /api/auth/refresh endpoint
+  ☐ Create mobile/src/services/axiosConfig.js
+  ☐ Add axios interceptor for 401
+  ☐ Update AsyncStorage to store refresh token
+  ☐ Test token refresh flow
+
+☐ FIX #3: Global Error Handling (2 hours)
+  ☐ Create mobile/src/utils/errorHandler.js
+  ☐ Update all screens to use handleApiError()
+  ☐ Add error handling to axios interceptor
+  ☐ Test with network errors
+  ☐ Test with 401/403/404/500 errors
+
+☐ FIX #4: Proper Exception Handling (3 hours)
+  ☐ Create ResourceNotFoundException.java
+  ☐ Create UnauthorizedException.java
+  ☐ Create ValidationException.java
+  ☐ Create ErrorResponse.java
+  ☐ Create GlobalExceptionHandler.java
+  ☐ Update all controllers to use custom exceptions
+  ☐ Test error responses
+
+☐ FIX #5: Server-Side Validation (8 hours)
+  ☐ Add validation to FilterService
+  ☐ Add validation to SocialService
+  ☐ Add validation to TicketService
+  ☐ Add validation to all other services
+  ☐ Test with invalid inputs
+  ☐ Test ownership violations
+
+☐ FIX #6: Rate Limiting (4 hours)
+  ☐ Add Bucket4j dependencies to pom.xml
+  ☐ Create RateLimitConfig.java
+  ☐ Create RateLimitInterceptor.java
+  ☐ Create WebConfig.java
+  ☐ Test rate limiting
+  ☐ Verify 429 responses
+
+☐ FIX #7: Input Sanitization (6 hours)
+  ☐ Add OWASP sanitizer dependency
+  ☐ Create SanitizationUtil.java
+  ☐ Sanitize inputs in SocialService
+  ☐ Sanitize inputs in ReviewService
+  ☐ Create mobile/src/utils/sanitization.js
+  ☐ Sanitize inputs in frontend
+  ☐ Test XSS protection
+
+CRITICAL FIXES COMPLETE: ☐ YES ☐ NO
+
+═══════════════════════════════════════════════════════════════
+🟠 HIGH PRIORITY FIXES (DO NEXT)
+═══════════════════════════════════════════════════════════════
+
+☐ FIX #8: Pagination (8 hours)
+  ☐ Add pagination to FriendsScreen
+  ☐ Add pagination to FilterScreen
+  ☐ Add pagination to EventChatScreen
+  ☐ Add pagination to all list screens
+  ☐ Implement infinite scroll
+  ☐ Test pagination
+
+☐ FIX #9: Standardize Error Handling (6 hours)
+  ☐ Create consistent error handling pattern
+  ☐ Update all screens
+  ☐ Add retry mechanisms
+  ☐ Test error scenarios
+
+☐ FIX #10: Deep Linking (4 hours)
+  ☐ Configure expo-linking
+  ☐ Add URL scheme (tiranaevents://)
+  ☐ Handle invite tokens
+  ☐ Test deep link flow
+
+☐ FIX #11: Network Error Handling (4 hours)
+  ☐ Add axios timeout
+  ☐ Detect network connectivity
+  ☐ Show offline indicator
+  ☐ Queue requests when offline
+  ☐ Test with poor network
+
+☐ FIX #12: Optimistic Updates (6 hours)
+  ☐ Update UI immediately on actions
+  ☐ Revert on error
+  ☐ Add loading indicators
+  ☐ Test optimistic updates
+
+☐ FIX #13: Validation Alignment (6 hours)
+  ☐ Mirror backend validation in frontend
+  ☐ Add form validation library
+  ☐ Validate on blur
+  ☐ Test validation
+
+☐ FIX #14: Configure Deep Linking (4 hours)
+  ☐ Setup expo-linking
+  ☐ Handle invite tokens
+  ☐ Test deep link flow
+
+HIGH PRIORITY FIXES COMPLETE: ☐ YES ☐ NO
+
+═══════════════════════════════════════════════════════════════
+🟡 MEDIUM PRIORITY FIXES (DO SOON)
+═══════════════════════════════════════════════════════════════
+
+☐ FIX #15: Caching Strategy (8 hours)
+  ☐ Install React Query or SWR
+  ☐ Cache static data
+  ☐ Set cache TTL
+  ☐ Invalidate on mutations
+
+☐ FIX #16: Date Handling (4 hours)
+  ☐ Install date-fns
+  ☐ Handle timezones properly
+  ☐ Format dates consistently
+  ☐ Test with different timezones
+
+☐ FIX #17: Show Attendee Count (2 hours)
+  ☐ Add attendee count to event cards
+  ☐ Update count on ticket purchase
+
+☐ FIX #18: Debouncing (3 hours)
+  ☐ Add debounce to search inputs
+  ☐ Debounce slider changes
+  ☐ Cancel previous requests
+
+☐ FIX #19: Accessibility Labels (4 hours)
+  ☐ Add accessibilityLabel to all buttons
+  ☐ Add accessibilityHint
+  ☐ Test with VoiceOver/TalkBack
+
+MEDIUM PRIORITY FIXES COMPLETE: ☐ YES ☐ NO
+
+═══════════════════════════════════════════════════════════════
+🧪 TESTING CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+☐ Authentication Flow
+  ☐ Login works
+  ☐ Register works
+  ☐ Token refresh works
+  ☐ Auto-logout works
+
+☐ API Configuration
+  ☐ Dev environment works
+  ☐ Staging environment works
+  ☐ Production environment works
+
+☐ Error Handling
+  ☐ Network errors handled
+  ☐ 401/403 handled
+  ☐ 404 handled
+  ☐ 500 handled
+
+☐ Validation
+  ☐ Invalid inputs rejected
+  ☐ Business rules enforced
+  ☐ Ownership validated
+
+☐ Rate Limiting
+  ☐ Rapid requests return 429
+  ☐ Limits reset properly
+
+☐ Security
+  ☐ XSS blocked
+  ☐ HTML sanitized
+  ☐ Passwords hashed
+  ☐ Errors don't leak info
+
+☐ Performance
+  ☐ Pagination works
+  ☐ Caching works
+  ☐ App is responsive
+
+ALL TESTS PASSED: ☐ YES ☐ NO
+
+═══════════════════════════════════════════════════════════════
+🚀 DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+☐ Backend Ready
+  ☐ All critical fixes done
+  ☐ JWT secret in env variable
+  ☐ Database secured
+  ☐ CORS configured
+  ☐ HTTPS enabled
+  ☐ Logging configured
+  ☐ Monitoring setup
+
+☐ Frontend Ready
+  ☐ API URL points to production
+  ☐ Firebase configured
+  ☐ Push notifications tested
+  ☐ Deep linking tested
+  ☐ App icons added
+  ☐ Privacy policy added
+
+☐ Testing Complete
+  ☐ All critical paths tested
+  ☐ Load testing done
+  ☐ Security audit done
+  ☐ Accessibility tested
+
+☐ Deployment
+  ☐ Staging deployed
+  ☐ UAT completed
+  ☐ Production deployed
+  ☐ Monitoring active
+
+READY FOR PRODUCTION: ☐ YES ☐ NO
+
+═══════════════════════════════════════════════════════════════
+📊 PROGRESS TRACKER
+═══════════════════════════════════════════════════════════════
+
+CRITICAL FIXES: ___/7 complete (___%)
+HIGH PRIORITY: ___/7 complete (___%)
+MEDIUM PRIORITY: ___/5 complete (___%)
+
+TOTAL PROGRESS: ___/19 fixes complete (___%)
+
+ESTIMATED HOURS REMAINING: _______
+
+TARGET COMPLETION DATE: _______
+
+═══════════════════════════════════════════════════════════════
+END OF CHECKLIST
+═══════════════════════════════════════════════════════════════

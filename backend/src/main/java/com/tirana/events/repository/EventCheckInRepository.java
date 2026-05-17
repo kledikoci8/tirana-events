@@ -18,4 +18,6 @@ public interface EventCheckInRepository extends JpaRepository<EventCheckIn, Long
     Boolean existsByTicketId(Long ticketId);
     
     Long countByEventId(Long eventId);
+    
+    Long countByUserId(Long userId);
 }
