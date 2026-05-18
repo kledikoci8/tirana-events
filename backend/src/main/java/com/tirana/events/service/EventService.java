@@ -11,6 +11,8 @@ import com.tirana.events.repository.CategoryRepository;
 import com.tirana.events.repository.EventRepository;
 import com.tirana.events.repository.TicketRepository;
 import com.tirana.events.repository.UserRepository;
+import com.tirana.events.util.SqlUtil;
+import com.tirana.events.util.SanitizationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,9 +53,12 @@ public class EventService {
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
         Event event = new Event();
-        event.setName(request.getName());
-        event.setDescription(request.getDescription());
-        event.setLocation(request.getLocation());
+        
+        // FIX B4: Sanitize all user input to prevent XSS attacks
+        event.setName(SanitizationUtil.sanitizeText(request.getName()));
+        event.setDescription(SanitizationUtil.sanitizeHtml(request.getDescription()));
+        event.setLocation(SanitizationUtil.sanitizeText(request.getLocation()));
+        
         event.setLatitude(request.getLatitude());
         event.setLongitude(request.getLongitude());
         event.setStartDate(request.getStartDate());
@@ -70,9 +75,19 @@ public class EventService {
         return convertToDTO(event, organizer);
     }
 
-    public List<EventDTO> getUpcomingEvents(String userEmail) {
+    public List<EventDTO> getUpcomingEvents(String userEmail, int page, int size) {
         User user = resolveUser(userEmail);
-        return eventRepository.findUpcomingEvents(LocalDateTime.now()).stream()
+        List<Event> events = eventRepository.findUpcomingEvents(LocalDateTime.now());
+        
+        // Manual pagination
+        int start = page * size;
+        int end = Math.min(start + size, events.size());
+        
+        if (start >= events.size()) {
+            return List.of();
+        }
+        
+        return events.subList(start, end).stream()
                 .map(e -> convertToDTO(e, user))
                 .collect(Collectors.toList());
     }
@@ -84,7 +99,7 @@ public class EventService {
                     .map(e -> convertToDTO(e, user))
                     .collect(Collectors.toList());
         }
-        return getUpcomingEvents(userEmail);
+        return getUpcomingEvents(userEmail, 0, limit);
     }
 
     public List<EventDTO> getNearbyEvents(double lat, double lng, double radiusKm, String userEmail) {
@@ -108,9 +123,22 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
-    public List<EventDTO> searchEvents(String query, String userEmail) {
+    public List<EventDTO> searchEvents(String query, String userEmail, int page, int size) {
         User user = resolveUser(userEmail);
-        return eventRepository.searchEvents(query).stream()
+        
+        // FIX A4: Escape LIKE wildcards to prevent wildcard injection attacks
+        String escapedQuery = SqlUtil.escapeLikePattern(query);
+        List<Event> events = eventRepository.searchEvents(escapedQuery);
+        
+        // Manual pagination
+        int start = page * size;
+        int end = Math.min(start + size, events.size());
+        
+        if (start >= events.size()) {
+            return List.of();
+        }
+        
+        return events.subList(start, end).stream()
                 .map(e -> convertToDTO(e, user))
                 .collect(Collectors.toList());
     }

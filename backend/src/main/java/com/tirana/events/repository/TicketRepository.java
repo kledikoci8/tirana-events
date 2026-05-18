@@ -27,9 +27,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT t FROM Ticket t JOIN FETCH t.event WHERE t.user = :user ORDER BY t.event.startDate DESC")
     List<Ticket> findByUserWithEvent(@Param("user") User user);
 
-    @Query("SELECT DISTINCT t.user FROM Ticket t WHERE t.event = :event AND t.user IN :friends AND t.status = com.tirana.events.model.Ticket.TicketStatus.ACTIVE")
+    @Query("SELECT DISTINCT t.user FROM Ticket t WHERE t.event = :event AND t.user IN :friends AND t.status = 'ACTIVE'")
     List<User> findFriendsWithTicketsForEvent(@Param("event") Event event, @Param("friends") List<User> friends);
 
-    @Query("SELECT COUNT(DISTINCT t.user) FROM Ticket t WHERE t.event = :event AND t.user IN :friends AND t.status = com.tirana.events.model.Ticket.TicketStatus.ACTIVE")
+    @Query("SELECT COUNT(DISTINCT t.user) FROM Ticket t WHERE t.event = :event AND t.user IN :friends AND t.status = 'ACTIVE'")
     Long countFriendsWithTicketsForEvent(@Param("event") Event event, @Param("friends") List<User> friends);
 }

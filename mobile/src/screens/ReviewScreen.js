@@ -41,6 +41,9 @@ export default function ReviewScreen({ route, navigation }) {
       setReviews(response.data);
     } catch (error) {
       console.error('Error loading reviews:', error);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert('Session expired. Please log in again.');
+      }
     }
   };
 
@@ -68,8 +71,14 @@ export default function ReviewScreen({ route, navigation }) {
       setSelectedTags([]);
       loadReviews();
       loadAverageRating();
+      alert('Review submitted successfully!');
     } catch (error) {
       console.error('Error submitting review:', error);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert('Session expired. Please log in again to submit a review.');
+      } else {
+        alert('Failed to submit review. Please try again.');
+      }
     }
   };
 

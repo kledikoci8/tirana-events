@@ -54,9 +54,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                .requestMatchers("/api/events/search", "/api/events/upcoming", "/api/events/recommended",
-                        "/api/events/nearby", "/api/events/{id}").permitAll()
+                .requestMatchers("/api/events/**").permitAll() // Allow all event endpoints
                 .requestMatchers("/api/categories/**").permitAll()
+                .requestMatchers("/api/reviews/events/**").permitAll() // Allow public access to read reviews
+                .requestMatchers("/api/social/events/*/attendees").permitAll() // Allow viewing attendees
+                .requestMatchers("/api/social/events/batch-attendees").permitAll() // Allow batch attendees
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -72,10 +74,24 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // Read allowed origins from environment variable or use defaults for development
+        String allowedOriginsEnv = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (allowedOriginsEnv != null && !allowedOriginsEnv.isEmpty()) {
+            configuration.setAllowedOrigins(Arrays.asList(allowedOriginsEnv.split(",")));
+        } else {
+            // Development defaults - restrict in production!
+            configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "http://192.168.*:*",
+                "exp://*"
+            ));
+        }
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // Cache preflight for 1 hour
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

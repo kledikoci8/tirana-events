@@ -55,7 +55,12 @@ const OnboardingScreen = ({ navigation }) => {
         categoryIds: selectedCategories,
       });
       await AsyncStorage.setItem('onboardingCompleted', 'true');
-      navigation.replace('Main');
+      
+      // Use reset instead of replace to ensure clean navigation
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     } catch (error) {
       console.error('Error completing onboarding:', error);
       alert('Failed to save preferences. Please try again.');
@@ -166,7 +171,13 @@ const OnboardingScreen = ({ navigation }) => {
           {/* Skip Button */}
           <TouchableOpacity
             style={styles.skipButton}
-            onPress={() => navigation.replace('Main')}
+            onPress={async () => {
+              await AsyncStorage.setItem('onboardingCompleted', 'true');
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main' }],
+              });
+            }}
           >
             <Text style={styles.skipText}>Skip for now</Text>
           </TouchableOpacity>

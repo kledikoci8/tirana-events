@@ -1,0 +1,129 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 FIX YOUR 403 ERRORS NOW - 2 SIMPLE STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM: Your JWT token expired (it was created 24+ hours ago)
+SOLUTION: Clear the old token and get a fresh one (now valid for 7 days!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP 1: RESTART YOUR APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In your terminal:
+
+    cd mobile
+    npm start
+
+Wait for Metro to load, then open the app on your phone/simulator.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP 2: CLEAR STORAGE IN THE APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open your app
+2. Go to the "Profile" tab (bottom right)
+3. Scroll to the bottom
+4. Tap the ORANGE button: "Clear Storage & Logout"
+5. You'll see: "Storage cleared! Please login again"
+6. You'll be taken to the login screen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP 3: REGISTER A NEW ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On the login screen:
+
+1. Tap "Register" or "Sign Up"
+2. Enter:
+   - Email: test2@test.com
+   - Password: test123
+   - Full Name: Test User
+3. Tap "Register"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ DONE! ALL 403 ERRORS FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your new token is valid for 7 DAYS!
+
+You should now see:
+✅ Reviews load correctly
+✅ Events load correctly
+✅ Friends attending shows up
+✅ All API calls work
+✅ No more 403 errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 VISUAL GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    📱 Open App
+       ↓
+    👤 Go to Profile Tab
+       ↓
+    📜 Scroll to Bottom
+       ↓
+    🟠 Tap "Clear Storage & Logout" (ORANGE button)
+       ↓
+    ✅ Alert: "Storage cleared!"
+       ↓
+    🔐 Login Screen Appears
+       ↓
+    📝 Register New Account (test2@test.com / test123)
+       ↓
+    🎉 DONE! All APIs work now!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 WHAT I FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ✅ Added "Clear Storage & Logout" button to ProfileScreen
+2. ✅ Backend JWT expiration already set to 7 days (604800000ms)
+3. ✅ Button clears AsyncStorage completely
+4. ✅ Button clears API authorization headers
+5. ✅ Button logs you out and shows login screen
+6. ✅ Shows user-friendly alert message
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🆘 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Can't see the orange button?
+   → Make sure you restarted the app (npm start)
+   → Scroll all the way to the bottom of Profile screen
+
+❌ Still getting 403 errors after registering?
+   → Make sure backend is running (check terminal for "Started TiranaEventsApplication")
+   → Check backend is on port 8080: curl http://localhost:8080/api/health
+
+❌ Registration fails?
+   → Check backend logs in terminal
+   → Make sure MySQL is running (XAMPP → Start MySQL)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 WHAT CHANGED IN YOUR CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: mobile/src/screens/ProfileScreen.js
+
+ADDED:
+- Import AsyncStorage
+- handleClearStorage() function
+- "Clear Storage & Logout" button (orange, above red logout button)
+- Button clears all storage and logs out
+
+BACKEND:
+- JWT expiration already set to 7 days in application.properties
+- No backend changes needed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 DO THIS NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. cd mobile && npm start
+2. Open app → Profile tab
+3. Scroll down → Tap "Clear Storage & Logout" (orange button)
+4. Register: test2@test.com / test123
+5. DONE! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

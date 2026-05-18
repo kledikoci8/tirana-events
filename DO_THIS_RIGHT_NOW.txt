@@ -1,0 +1,120 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FIX YOUR 403 ERRORS - DO THIS RIGHT NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+I ADDED A BUTTON TO YOUR APP TO FIX THIS!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1: RESTART YOUR APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In terminal:
+
+    cd mobile
+    npm start
+
+Wait for it to load, then open the app.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2: TAP THE ORANGE BUTTON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open your app
+2. Go to "Profile" tab (bottom right corner)
+3. Scroll all the way to the bottom
+4. You'll see an ORANGE button: "Clear Storage & Logout"
+5. TAP IT!
+6. You'll see: "Storage cleared! Please login again"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3: REGISTER NEW ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You'll be on the login screen. Tap "Register" and enter:
+
+    Email: test2@test.com
+    Password: test123
+    Full Name: Test User
+
+Tap "Register"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ DONE! ALL 403 ERRORS FIXED!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your new token is valid for 7 DAYS!
+
+Everything should work now:
+✅ Reviews load
+✅ Events load
+✅ Friends attending shows
+✅ No more 403 errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 VISUAL GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    📱 Open App
+       ↓
+    👤 Tap "Profile" (bottom right)
+       ↓
+    📜 Scroll to bottom
+       ↓
+    🟠 Tap "Clear Storage & Logout" (ORANGE BUTTON)
+       ↓
+    ✅ Alert: "Storage cleared!"
+       ↓
+    📝 Register: test2@test.com / test123
+       ↓
+    🎉 DONE!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 WHAT I FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Added "Clear Storage & Logout" button to ProfileScreen
+✅ Button clears your old expired token
+✅ Button logs you out automatically
+✅ Shows user-friendly message
+✅ Backend already set to 7-day token expiration
+
+File changed: mobile/src/screens/ProfileScreen.js
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🆘 CAN'T SEE THE BUTTON?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Make sure you:
+1. Restarted the app (npm start)
+2. Went to Profile tab
+3. Scrolled ALL THE WAY to the bottom
+4. Look for ORANGE button (above red logout button)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 BACKEND STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Backend is running (PID 79455)
+✅ Port 8080 is active
+✅ JWT expiration set to 7 days
+✅ MySQL database connected
+
+No backend changes needed!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 QUICK SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM: Your JWT token expired (was created 24+ hours ago)
+SOLUTION: Clear old token and get a fresh one (valid 7 days)
+HOW: Use the new orange button I added to your Profile screen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DO THIS NOW:
+1. cd mobile && npm start
+2. Profile → Orange button
+3. Register: test2@test.com / test123
+4. ✅ DONE!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

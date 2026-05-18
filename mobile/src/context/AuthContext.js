@@ -11,9 +11,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(async () => {
+    // FIX A5: Clear ALL token storage locations to prevent phantom requests
+    // Order matters: clear storage first, then headers, then state
+    
+    // 1. Clear AsyncStorage (persistent storage)
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('refreshToken');
     await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('onboardingCompleted');
+    
+    // 2. Clear axios default headers (in-memory)
     delete api.defaults.headers.common['Authorization'];
+    
+    // 3. Clear React state (triggers re-render and navigation)
     setUser(null);
   }, []);
 
@@ -62,9 +72,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token, ...userData } = response.data;
+      const { token, refreshToken, ...userData } = response.data;
 
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -87,9 +98,10 @@ export const AuthProvider = ({ children }) => {
         password,
         fullName,
       });
-      const { token, ...userData } = response.data;
+      const { token, refreshToken, ...userData } = response.data;
 
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

@@ -114,7 +114,9 @@ function AppNavigator() {
       if (!needs) {
         await AsyncStorage.setItem('onboardingCompleted', 'true');
       }
-    } catch {
+    } catch (error) {
+      // If API call fails (e.g., 401/403), skip onboarding
+      console.log('Onboarding check failed, skipping:', error.message);
       setNeedsOnboarding(false);
     } finally {
       setOnboardingChecked(true);
@@ -184,7 +186,18 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer linking={linking}>
+      <NavigationContainer 
+        linking={linking}
+        onStateChange={(state) => {
+          // Log navigation state changes for debugging
+          console.log('Navigation state changed:', state?.routes?.[state.index]?.name);
+        }}
+        fallback={
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
+            <ActivityIndicator size="large" color="#8B5CF6" />
+          </View>
+        }
+      >
         <AppNavigator />
       </NavigationContainer>
     </AuthProvider>

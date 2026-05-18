@@ -18,7 +18,7 @@ public class WeatherData {
     @Column(nullable = false)
     private Double temperature; // Celsius
 
-    @Column(nullable = false)
+    @Column(name = "weather_condition", nullable = false)
     private String condition; // CLEAR, CLOUDY, RAIN, STORM, SNOW
 
     private Integer precipitationChance; // 0-100%

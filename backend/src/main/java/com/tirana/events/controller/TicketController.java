@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// FIX B1: Removed @CrossOrigin - CORS is handled globally in SecurityConfig
 @RestController
 @RequestMapping("/api/tickets")
-@CrossOrigin(origins = "*")
 public class TicketController {
     
     @Autowired
@@ -59,8 +59,10 @@ public class TicketController {
         Ticket ticket = ticketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
+        // FIX A3: Check ownership BEFORE any processing to prevent IDOR
+        // Return same error as not found to prevent ticket ID enumeration
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Ticket not found");
         }
         
         return ResponseEntity.ok(ticketService.toDto(ticket));
@@ -75,8 +77,9 @@ public class TicketController {
         Ticket ticket = ticketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
+        // FIX A3: Check ownership BEFORE any processing to prevent IDOR
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Ticket not found");
         }
         
         ticket.setIsDownloaded(true);
@@ -95,8 +98,9 @@ public class TicketController {
         Ticket ticket = ticketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
+        // FIX A3: Check ownership BEFORE any processing to prevent IDOR
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Ticket not found");
         }
         
         Map<String, Object> pass = walletService.generateAppleWalletPass(ticket);
@@ -115,8 +119,9 @@ public class TicketController {
         Ticket ticket = ticketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
+        // FIX A3: Check ownership BEFORE any processing to prevent IDOR
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Ticket not found");
         }
         
         Map<String, Object> pass = walletService.generateGoogleWalletPass(ticket);
@@ -175,8 +180,9 @@ public class TicketController {
         Ticket ticket = ticketRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
+        // FIX A3: Check ownership BEFORE any processing to prevent IDOR
         if (!ticket.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Ticket not found");
         }
         
         User recipient = userRepository.findById(request.getRecipientId())

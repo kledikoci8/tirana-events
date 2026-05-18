@@ -96,6 +96,33 @@ public class SocialController {
         return ResponseEntity.ok(dto);
     }
     
+    @PostMapping("/events/batch-attendees")
+    public ResponseEntity<java.util.Map<Long, FriendsAttendingDTO>> getBatchFriendsAttending(
+            Authentication authentication,
+            @RequestBody List<Long> eventIds) {
+        
+        User user = getCurrentUser(authentication);
+        java.util.Map<Long, FriendsAttendingDTO> result = new java.util.HashMap<>();
+        
+        for (Long eventId : eventIds) {
+            Event event = eventRepository.findById(eventId).orElse(null);
+            if (event != null) {
+                List<User> friendsAttending = socialService.getFriendsAttendingEvent(user, event);
+                Long count = socialService.countFriendsAttendingEvent(user, event);
+                
+                FriendsAttendingDTO dto = new FriendsAttendingDTO();
+                dto.setCount(count);
+                dto.setFriends(friendsAttending.stream()
+                    .map(this::convertUserToDTO)
+                    .collect(Collectors.toList()));
+                
+                result.put(eventId, dto);
+            }
+        }
+        
+        return ResponseEntity.ok(result);
+    }
+    
     @PostMapping("/events/{eventId}/chat")
     public ResponseEntity<EventChatDTO> sendChatMessage(
             Authentication authentication,

@@ -71,4 +71,12 @@ public class Ticket {
     public LocalDateTime getPurchasedAt() {
         return this.purchaseDate;
     }
+    
+    public Double getPrice() {
+        return this.price;
+    }
+    
+    public void setPrice(Double price) {
+        this.price = price;
+    }
 }

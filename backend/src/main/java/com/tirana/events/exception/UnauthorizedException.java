@@ -1,9 +1,7 @@
 package com.tirana.events.exception;
 
-import org.springframework.http.HttpStatus;
-
-public class UnauthorizedException extends ApiException {
+public class UnauthorizedException extends RuntimeException {
     public UnauthorizedException(String message) {
-        super(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", message);
+        super(message);
     }
 }

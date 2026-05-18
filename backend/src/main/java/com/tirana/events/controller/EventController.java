@@ -10,9 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+// FIX B1: Removed @CrossOrigin - CORS is handled globally in SecurityConfig
 @RestController
 @RequestMapping("/api/events")
-@CrossOrigin(origins = "*")
 public class EventController {
     
     @Autowired
@@ -25,9 +25,12 @@ public class EventController {
     }
     
     @GetMapping("/upcoming")
-    public ResponseEntity<List<EventDTO>> getUpcomingEvents(Authentication authentication) {
+    public ResponseEntity<List<EventDTO>> getUpcomingEvents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
         String email = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(eventService.getUpcomingEvents(email));
+        return ResponseEntity.ok(eventService.getUpcomingEvents(email, page, size));
     }
 
     @GetMapping("/recommended")
@@ -49,10 +52,13 @@ public class EventController {
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<EventDTO>> searchEvents(@RequestParam String query,
-                                                        Authentication authentication) {
+    public ResponseEntity<List<EventDTO>> searchEvents(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
         String email = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(eventService.searchEvents(query, email));
+        return ResponseEntity.ok(eventService.searchEvents(query, email, page, size));
     }
 
     @GetMapping("/mine")

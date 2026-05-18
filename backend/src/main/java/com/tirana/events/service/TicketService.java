@@ -38,6 +38,7 @@ public class TicketService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
+        // CRITICAL FIX A1: Use pessimistic lock to prevent race conditions
         Event event = eventRepository.findByIdForUpdate(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
 
@@ -49,9 +50,19 @@ public class TicketService {
             throw new ConflictException("You already have a ticket for this event");
         }
 
+        // CRITICAL FIX A1: Check and decrement stock ATOMICALLY before creating ticket
         long soldCount = ticketRepository.countByEvent(event);
         if (event.getMaxAttendees() != null && soldCount >= event.getMaxAttendees()) {
             throw new ConflictException("Tickets are no longer available");
+        }
+
+        // CRITICAL FIX A1: Decrement stock BEFORE creating ticket to prevent overselling
+        if (event.getTicketsAvailable() != null) {
+            if (event.getTicketsAvailable() <= 0) {
+                throw new ConflictException("No tickets available");
+            }
+            event.setTicketsAvailable(event.getTicketsAvailable() - 1);
+            eventRepository.save(event);
         }
 
         analyticsService.trackPurchaseAttempt(event);
@@ -77,11 +88,6 @@ public class TicketService {
         ticket.setDownloadedAt(LocalDateTime.now());
 
         ticket = ticketRepository.save(ticket);
-
-        if (event.getTicketsAvailable() != null && event.getTicketsAvailable() > 0) {
-            event.setTicketsAvailable(event.getTicketsAvailable() - 1);
-            eventRepository.save(event);
-        }
 
         socialService.recordActivity(user, event, FriendActivity.ActivityType.PURCHASED_TICKET);
         socialService.notifyFollowersOfPurchase(user, event);

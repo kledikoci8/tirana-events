@@ -43,3 +43,8 @@ yarn-error.log*
 *.tmp
 *.temp
 .metro-health-check*
+
+.md
+.txt
+.sh
+.sql

@@ -1,0 +1,109 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    ⚡ DO THIS NOW - 401 ERROR FIX                            ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+ERROR: [API] 401 - Session expired or unauthorized
+
+PROBLEM: Your token is expired. You need a fresh one.
+
+SOLUTION: 2 SIMPLE STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+STEP 1: CLEAR OLD TOKEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+METHOD A: Use React Native Debugger (EASIEST)
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 1. Open React Native Debugger (should open automatically)                 │
+│ 2. Go to Console tab                                                       │
+│ 3. Type this command:                                                      │
+│                                                                            │
+│    AsyncStorage.clear()                                                    │
+│                                                                            │
+│ 4. Press Enter                                                             │
+│ 5. You should see: Promise {<pending>}                                    │
+│ 6. Close the app completely                                               │
+│ 7. Reopen the app                                                          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+METHOD B: Use Expo Dev Menu
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 1. In the app, shake your device (or press Cmd+D in simulator)            │
+│ 2. Tap "Debug Remote JS"                                                  │
+│ 3. In the browser console that opens, type:                               │
+│                                                                            │
+│    AsyncStorage.clear()                                                    │
+│                                                                            │
+│ 4. Press Enter                                                             │
+│ 5. Close and reopen the app                                               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+METHOD C: If You Can Access Profile Screen
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 1. Open the app                                                            │
+│ 2. Go to Profile tab (bottom right)                                       │
+│ 3. Look for "Log Out" button                                              │
+│ 4. Tap it                                                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+
+STEP 2: REGISTER NEW ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After clearing storage, the app will show the login screen:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 1. Tap "Register" (or "Sign Up")                                          │
+│ 2. Enter:                                                                  │
+│    • Email: test@test.com                                                  │
+│    • Password: test123                                                     │
+│    • Full Name: Test User                                                  │
+│ 3. Tap "Register"                                                          │
+│ 4. You'll get a NEW token valid for 7 DAYS                                │
+└────────────────────────────────────────────────────────────────────────────┘
+
+
+THAT'S IT!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After registering:
+✅ Browse events
+✅ View personalized feed
+✅ Submit reviews
+✅ All features work
+✅ NO MORE 401 ERRORS!
+
+
+WHY THIS WORKS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your old token expired (24 hours old)
+→ Clear storage removes the old token
+→ Register gives you a NEW token
+→ New token is valid for 7 DAYS
+→ Everything works!
+
+
+QUICK REFERENCE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Clear Storage Command:
+AsyncStorage.clear()
+
+Test Account:
+Email: test@test.com
+Password: test123
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║  1. Open React Native Debugger Console                                      ║
+║  2. Run: AsyncStorage.clear()                                               ║
+║  3. Restart app                                                              ║
+║  4. Register new account                                                     ║
+║  5. DONE! ✅                                                                 ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

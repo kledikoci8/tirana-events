@@ -42,48 +42,67 @@ export default function HomeScreen({ navigation }) {
   const pulseAnim = useSharedValue(1);
 
   useEffect(() => {
+    let mounted = true; // FIX A2: Track mount state to prevent memory leaks
+    
+    const loadData = async () => {
+      try {
+        const categoriesRes = await api.get('/categories');
+        if (!mounted) return; // FIX A2: Don't update state if unmounted
+        setCategories(categoriesRes.data);
+
+        let list = [];
+        try {
+          const eventsRes = await api.get('/events/recommended?limit=20');
+          list = eventsRes.data;
+        } catch {
+          const eventsRes = await api.get('/events/upcoming');
+          list = eventsRes.data;
+        }
+        if (!mounted) return; // FIX A2: Don't update state if unmounted
+        setEvents(list);
+        loadFriendsAttending(list);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    
     loadData();
+    
     // Pulse animation for notification badge
     pulseAnim.value = withRepeat(
       withTiming(1.2, { duration: 1000 }),
       -1,
       true
     );
+    
+    // FIX A2: Cleanup function to prevent memory leaks
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadData = async () => {
-    try {
-      const categoriesRes = await api.get('/categories');
-      setCategories(categoriesRes.data);
-
-      let list = [];
-      try {
-        const eventsRes = await api.get('/events/recommended?limit=20');
-        list = eventsRes.data;
-      } catch {
-        const eventsRes = await api.get('/events/upcoming');
-        list = eventsRes.data;
-      }
-      setEvents(list);
-      loadFriendsAttending(list);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
-  };
-
   const loadFriendsAttending = async (eventList) => {
-    const map = {};
-    await Promise.all(
-      (eventList || []).slice(0, 12).map(async (ev) => {
-        try {
-          const res = await api.get(`/social/events/${ev.id}/attendees`);
-          if (res.data?.count > 0) map[ev.id] = res.data;
-        } catch {
-          /* ignore */
+    try {
+      // Use batch endpoint instead of 12 separate calls
+      const eventIds = (eventList || []).slice(0, 12).map(ev => ev.id);
+      if (eventIds.length === 0) return;
+      
+      const res = await api.post('/social/events/batch-attendees', eventIds);
+      const map = {};
+      
+      // Filter only events with friends attending
+      Object.entries(res.data).forEach(([eventId, data]) => {
+        if (data?.count > 0) {
+          map[eventId] = data;
         }
-      })
-    );
-    setFriendsByEvent(map);
+      });
+      
+      setFriendsByEvent(map);
+    } catch (error) {
+      console.error('Error loading friends attending:', error);
+      // Fallback to empty map on error
+      setFriendsByEvent({});
+    }
   };
 
   const applyCategoryFilter = async (categoryId) => {

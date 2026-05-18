@@ -1,0 +1,79 @@
+========================================
+DATABASE SETUP INSTRUCTIONS
+========================================
+
+The backend is failing because the MySQL database 'tiranaevents' doesn't exist yet.
+
+OPTION 1: Using MySQL Command Line
+-----------------------------------
+1. Open Terminal
+2. Connect to MySQL:
+   mysql -u root -p
+   
+3. Enter your MySQL root password (if you have one, otherwise just press Enter)
+
+4. Create the database:
+   CREATE DATABASE tiranaevents CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   
+5. Verify it was created:
+   SHOW DATABASES;
+   
+6. Exit MySQL:
+   exit;
+
+
+OPTION 2: Using phpMyAdmin
+---------------------------
+1. Open phpMyAdmin in your browser (usually http://localhost/phpmyadmin or http://localhost:8080/phpmyadmin)
+2. Click on "Databases" tab
+3. In "Create database" section:
+   - Database name: tiranaevents
+   - Collation: utf8mb4_unicode_ci
+4. Click "Create"
+
+
+OPTION 3: Using MySQL Workbench
+--------------------------------
+1. Open MySQL Workbench
+2. Connect to your local MySQL server
+3. Click on "Create a new schema" icon (cylinder with plus sign)
+4. Schema name: tiranaevents
+5. Charset: utf8mb4
+6. Collation: utf8mb4_unicode_ci
+7. Click "Apply"
+
+
+AFTER CREATING THE DATABASE:
+-----------------------------
+1. The database will be empty - that's OK!
+2. Spring Boot will automatically create all tables when you start the application
+3. The application uses Hibernate with ddl-auto=update, so it will:
+   - Create all tables on first run
+   - Update schema on subsequent runs if models change
+
+4. Start the backend again from IntelliJ IDEA
+
+
+TROUBLESHOOTING:
+----------------
+If you get "Unknown database 'tiranaevents'" error AFTER creating the database:
+- This is a PERMISSIONS issue - the root user can't access the database
+- Solution: Run the SQL commands in fix-database-permissions.sql file
+- In phpMyAdmin:
+  1. Click on "SQL" tab at the top
+  2. Copy and paste the contents of fix-database-permissions.sql
+  3. Click "Go" to execute
+  4. You should see "Query OK" messages
+  5. Restart your Spring Boot application
+
+If you get "Access denied" error:
+- Check your MySQL username in: backend/src/main/resources/application.properties
+- Default is: spring.datasource.username=root
+- Default password is empty: spring.datasource.password=
+
+If MySQL is not running:
+- macOS: brew services start mysql
+- Or start it from System Preferences if you installed MySQL with DMG
+
+If you forgot MySQL root password:
+- You'll need to reset it following MySQL documentation

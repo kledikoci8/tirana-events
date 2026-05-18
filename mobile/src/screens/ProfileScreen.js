@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -66,6 +67,30 @@ export default function ProfileScreen({ navigation }) {
       setProfile(response.data);
     } catch (error) {
       console.error('Error loading profile:', error);
+    }
+  };
+
+  const handleClearStorage = async () => {
+    try {
+      // FIX A5: Clear ALL storage locations in correct order
+      
+      // 1. Clear API headers first (prevent any pending requests)
+      delete api.defaults.headers.common['Authorization'];
+      
+      // 2. Clear all AsyncStorage data
+      await AsyncStorage.clear();
+      console.log('✅ Storage cleared successfully');
+      
+      // 3. Logout (this will reset auth context and trigger navigation)
+      await logout();
+      
+      // 4. Small delay to ensure navigation completes before showing alert
+      setTimeout(() => {
+        alert('Storage cleared! Please login again with a fresh account.');
+      }, 100);
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+      alert('Error clearing storage. Please try again.');
     }
   };
 
@@ -147,6 +172,11 @@ export default function ProfileScreen({ navigation }) {
             </View>
           ))}
 
+          <TouchableOpacity style={styles.clearStorageButton} onPress={handleClearStorage}>
+            <Ionicons name="trash-outline" size={20} color="#F59E0B" />
+            <Text style={styles.clearStorageText}>Clear Storage & Logout</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.logoutButton} onPress={logout}>
             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
             <Text style={styles.logoutText}>Logout</Text>
@@ -217,6 +247,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   menuLabel: { fontSize: 16, color: '#FFF' },
+  clearStorageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1F1F2E',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  clearStorageText: { fontSize: 16, color: '#F59E0B', fontWeight: '600', marginLeft: 8 },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
