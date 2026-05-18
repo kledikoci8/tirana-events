@@ -6,9 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 export default function BadgesScreen() {
   const [badges, setBadges] = useState([]);
@@ -19,12 +17,8 @@ export default function BadgesScreen() {
 
   const loadBadges = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/badges/my-badges`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setBadges(data);
+      const response = await api.get('/badges/my-badges');
+      setBadges(response.data);
     } catch (error) {
       console.error('Error loading badges:', error);
     }

@@ -86,7 +86,7 @@ public class GroupTicketService {
         ticket.setUser(participant.getUser());
         ticket.setEvent(participant.getGroupTicket().getEvent());
         ticket.setPrice(participant.getAmountOwed());
-        ticket.setPurchasedAt(LocalDateTime.now());
+        ticket.setPurchaseDate(LocalDateTime.now());
         ticket.setQrCode("QR-" + System.currentTimeMillis());
         ticket = ticketRepository.save(ticket);
 
@@ -137,7 +137,7 @@ public class GroupTicketService {
         dto.setEventName(groupTicket.getEvent().getName());
         dto.setEventImageUrl(groupTicket.getEvent().getImageUrl());
         dto.setOrganizerId(groupTicket.getOrganizer().getId());
-        dto.setOrganizerName(groupTicket.getOrganizer().getName());
+        dto.setOrganizerName(groupTicket.getOrganizer().getFullName());
         dto.setTotalTickets(groupTicket.getTotalTickets());
         dto.setTotalPrice(groupTicket.getTotalPrice());
         dto.setPricePerPerson(groupTicket.getTotalPrice() / groupTicket.getTotalTickets());
@@ -159,8 +159,8 @@ public class GroupTicketService {
         GroupParticipantDTO dto = new GroupParticipantDTO();
         dto.setId(participant.getId());
         dto.setUserId(participant.getUser().getId());
-        dto.setUserName(participant.getUser().getName());
-        dto.setUserAvatar(participant.getUser().getProfilePicture());
+        dto.setUserName(participant.getUser().getFullName());
+        dto.setUserAvatar(participant.getUser().getProfileImage());
         dto.setAmountOwed(participant.getAmountOwed());
         dto.setPaymentStatus(participant.getPaymentStatus());
         dto.setPaidAt(participant.getPaidAt());

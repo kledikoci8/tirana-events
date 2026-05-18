@@ -3,6 +3,7 @@ package com.tirana.events.controller;
 import com.tirana.events.dto.CreateReviewRequest;
 import com.tirana.events.dto.EventReviewDTO;
 import com.tirana.events.service.ReviewService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,13 +16,14 @@ import java.util.Map;
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
+    private final CurrentUserService currentUserService;
     private final ReviewService reviewService;
 
     @PostMapping
     public ResponseEntity<EventReviewDTO> createReview(
             @RequestBody CreateReviewRequest request,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(reviewService.createReview(userId, request));
     }
 
@@ -45,7 +47,7 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @RequestBody Map<String, String> body,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         reviewService.addOrganizerReply(reviewId, userId, body.get("reply"));
         return ResponseEntity.ok().build();
     }

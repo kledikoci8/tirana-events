@@ -12,9 +12,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { cacheTickets, getCachedTickets } from '../services/offlineTickets';
+import { scheduleAllTicketReminders } from '../services/localNotifications';
 
 export default function TicketsScreen() {
   const [tickets, setTickets] = useState([]);
+  const [offline, setOffline] = useState(false);
   const [selectedTab, setSelectedTab] = useState('upcoming');
 
   useEffect(() => {
@@ -24,11 +27,42 @@ export default function TicketsScreen() {
   const loadTickets = async () => {
     try {
       const response = await api.get('/tickets/my-tickets');
+      await cacheTickets(response.data);
       setTickets(response.data);
+      setOffline(false);
+      scheduleAllTicketReminders(response.data);
     } catch (error) {
       console.error('Error loading tickets:', error);
+      const cached = await getCachedTickets();
+      if (cached.length) {
+        setTickets(cached);
+        setOffline(true);
+      }
     }
   };
+
+  const getEventDate = (ticket) =>
+    ticket.eventDate || ticket.event?.startDate;
+
+  const getEventName = (ticket) =>
+    ticket.eventName || ticket.event?.name || 'Event';
+
+  const getEventLocation = (ticket) =>
+    ticket.eventLocation || ticket.event?.location || '';
+
+  const filteredTickets = tickets.filter((ticket) => {
+    const eventDate = getEventDate(ticket);
+    if (!eventDate) return selectedTab === 'upcoming';
+    const date = new Date(eventDate);
+    const now = new Date();
+    if (selectedTab === 'cancelled') {
+      return ticket.status === 'CANCELLED';
+    }
+    if (selectedTab === 'past') {
+      return date < now && ticket.status !== 'CANCELLED';
+    }
+    return date >= now && ticket.status !== 'CANCELLED';
+  });
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -46,20 +80,22 @@ export default function TicketsScreen() {
         <View style={styles.ticketHeader}>
           <View style={styles.ticketDate}>
             <Text style={styles.ticketDay}>
-              {new Date(item.event.startDate).getDate()}
+              {new Date(getEventDate(item)).getDate()}
             </Text>
             <Text style={styles.ticketMonth}>
-              {new Date(item.event.startDate).toLocaleString('default', { month: 'short' }).toUpperCase()}
+              {new Date(getEventDate(item))
+                .toLocaleString('default', { month: 'short' })
+                .toUpperCase()}
             </Text>
           </View>
           <View style={styles.ticketInfo}>
             <Text style={styles.ticketTitle} numberOfLines={2}>
-              {item.event.name}
+              {getEventName(item)}
             </Text>
             <View style={styles.ticketMeta}>
               <Ionicons name="location-outline" size={14} color="#9CA3AF" />
               <Text style={styles.ticketLocation} numberOfLines={1}>
-                {item.event.location}
+                {getEventLocation(item)}
               </Text>
             </View>
           </View>
@@ -74,13 +110,19 @@ export default function TicketsScreen() {
         <View style={styles.ticketQR}>
           <View style={styles.qrContainer}>
             <QRCode
-              value={item.qrCode}
+              value={item.qrCode || String(item.id)}
               size={120}
-              backgroundColor="transparent"
-              color="#FFFFFF"
+              backgroundColor="#FFFFFF"
+              color="#000000"
             />
           </View>
           <Text style={styles.qrLabel}>Show this QR code at the entrance</Text>
+          {(item.isDownloaded || offline) && (
+            <View style={styles.downloadedBadge}>
+              <Ionicons name="cloud-done" size={12} color="#10B981" />
+              <Text style={styles.downloadedText}>Saved offline</Text>
+            </View>
+          )}
           <Text style={styles.ticketId}>Ticket #{item.id}</Text>
         </View>
       </LinearGradient>
@@ -93,6 +135,9 @@ export default function TicketsScreen() {
       <LinearGradient colors={['#0A0A0F', '#1A1A24']} style={styles.gradient}>
         <View style={styles.header}>
           <Text style={styles.title}>My Tickets</Text>
+          {offline && (
+            <Text style={styles.offlineBadge}>Offline mode — showing saved tickets</Text>
+          )}
         </View>
 
         <View style={styles.tabs}>
@@ -128,7 +173,7 @@ export default function TicketsScreen() {
           </TouchableOpacity>
         </View>
 
-        {tickets.length === 0 ? (
+        {filteredTickets.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="ticket-outline" size={64} color="#6B7280" />
             <Text style={styles.emptyTitle}>No tickets yet</Text>
@@ -138,7 +183,7 @@ export default function TicketsScreen() {
           </View>
         ) : (
           <FlatList
-            data={tickets}
+            data={filteredTickets}
             renderItem={renderTicket}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.ticketsList}
@@ -168,6 +213,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+  offlineBadge: { fontSize: 12, color: '#F59E0B', marginTop: 6 },
+  downloadedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  downloadedText: { color: '#10B981', fontSize: 11, marginLeft: 4 },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: 20,

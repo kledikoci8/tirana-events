@@ -1,3 +1,4 @@
+import './src/polyfills/textEncoding';
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,27 +7,48 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Font from 'expo-font';
 import { View, ActivityIndicator, LogBox } from 'react-native';
+import api from './src/services/api';
+import { linking } from './src/navigation/linking';
 
-// Ignore VirtualizedLists warning
-LogBox.ignoreLogs([
-  'VirtualizedLists should never be nested',
-]);
+LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-// Screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ExploreScreen from './src/screens/ExploreScreen';
 import CreateEventScreen from './src/screens/CreateEventScreen';
 import TicketsScreen from './src/screens/TicketsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
+import FilterScreen from './src/screens/FilterScreen';
+import FriendsScreen from './src/screens/FriendsScreen';
+import EventChatScreen from './src/screens/EventChatScreen';
+import NotificationSettingsScreen from './src/screens/NotificationSettingsScreen';
+import NotificationsInboxScreen from './src/screens/NotificationsInboxScreen';
+import OrganizerDashboardScreen from './src/screens/OrganizerDashboardScreen';
+import MyEventsScreen from './src/screens/MyEventsScreen';
+import HappeningNowScreen from './src/screens/HappeningNowScreen';
+import ReviewScreen from './src/screens/ReviewScreen';
+import MemoryWallScreen from './src/screens/MemoryWallScreen';
+import GroupTicketScreen from './src/screens/GroupTicketScreen';
+import LoyaltyScreen from './src/screens/LoyaltyScreen';
+import BadgesScreen from './src/screens/BadgesScreen';
+import MoodSearchScreen from './src/screens/MoodSearchScreen';
+import CuratorListsScreen from './src/screens/CuratorListsScreen';
+import CommunityBoardScreen from './src/screens/CommunityBoardScreen';
+import ItineraryPlannerScreen from './src/screens/ItineraryPlannerScreen';
 
-// Context
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { ensureNotificationPermissions } from './src/services/localNotifications';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const modalOptions = {
+  presentation: 'modal',
+  animation: 'slide_from_bottom',
+};
 
 function TabNavigator() {
   return (
@@ -43,21 +65,14 @@ function TabNavigator() {
         tabBarActiveTintColor: '#8B5CF6',
         tabBarInactiveTintColor: '#6B7280',
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Explore') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'Create') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
-          } else if (route.name === 'Tickets') {
-            iconName = focused ? 'ticket' : 'ticket-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+          const icons = {
+            Home: focused ? 'home' : 'home-outline',
+            Explore: focused ? 'compass' : 'compass-outline',
+            Create: focused ? 'add-circle' : 'add-circle-outline',
+            Tickets: focused ? 'ticket' : 'ticket-outline',
+            Profile: focused ? 'person' : 'person-outline',
+          };
+          return <Ionicons name={icons[route.name]} size={size} color={color} />;
         },
       })}
     >
@@ -72,22 +87,78 @@ function TabNavigator() {
 
 function AppNavigator() {
   const { user, loading } = useAuth();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  if (loading) {
-    return null; // Or a loading screen
+  useEffect(() => {
+    if (!user) {
+      setOnboardingChecked(true);
+      setNeedsOnboarding(false);
+      return;
+    }
+    checkOnboarding();
+    ensureNotificationPermissions();
+  }, [user]);
+
+  const checkOnboarding = async () => {
+    try {
+      const local = await AsyncStorage.getItem('onboardingCompleted');
+      if (local === 'true') {
+        setNeedsOnboarding(false);
+        setOnboardingChecked(true);
+        return;
+      }
+      const res = await api.get('/personalization/onboarding/status');
+      const needs = res.data === true;
+      setNeedsOnboarding(needs);
+      if (!needs) {
+        await AsyncStorage.setItem('onboardingCompleted', 'true');
+      }
+    } catch {
+      setNeedsOnboarding(false);
+    } finally {
+      setOnboardingChecked(true);
+    }
+  };
+
+  if (loading || (user && !onboardingChecked)) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </View>
+    );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0A0A0F' } }}>
       {!user ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
         </>
+      ) : needsOnboarding ? (
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : (
         <>
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+          <Stack.Screen name="Filter" component={FilterScreen} options={modalOptions} />
+          <Stack.Screen name="Friends" component={FriendsScreen} />
+          <Stack.Screen name="EventChat" component={EventChatScreen} />
+          <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+          <Stack.Screen name="NotificationsInbox" component={NotificationsInboxScreen} />
+          <Stack.Screen name="MyEvents" component={MyEventsScreen} />
+          <Stack.Screen name="OrganizerDashboard" component={OrganizerDashboardScreen} />
+          <Stack.Screen name="HappeningNow" component={HappeningNowScreen} />
+          <Stack.Screen name="Reviews" component={ReviewScreen} />
+          <Stack.Screen name="MemoryWall" component={MemoryWallScreen} />
+          <Stack.Screen name="GroupTickets" component={GroupTicketScreen} />
+          <Stack.Screen name="Loyalty" component={LoyaltyScreen} />
+          <Stack.Screen name="Badges" component={BadgesScreen} />
+          <Stack.Screen name="MoodSearch" component={MoodSearchScreen} />
+          <Stack.Screen name="Curators" component={CuratorListsScreen} />
+          <Stack.Screen name="Community" component={CommunityBoardScreen} />
+          <Stack.Screen name="Itineraries" component={ItineraryPlannerScreen} />
         </>
       )}
     </Stack.Navigator>
@@ -98,18 +169,9 @@ export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    async function loadFonts() {
-      try {
-        await Font.loadAsync({
-          ...Ionicons.font,
-        });
-        setFontsLoaded(true);
-      } catch (error) {
-        console.error('Error loading fonts:', error);
-        setFontsLoaded(true); // Continue anyway
-      }
-    }
-    loadFonts();
+    Font.loadAsync({ ...Ionicons.font })
+      .then(() => setFontsLoaded(true))
+      .catch(() => setFontsLoaded(true));
   }, []);
 
   if (!fontsLoaded) {
@@ -122,7 +184,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <AppNavigator />
       </NavigationContainer>
     </AuthProvider>

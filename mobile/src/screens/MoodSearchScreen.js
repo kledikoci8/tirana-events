@@ -8,9 +8,7 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 const MOOD_BUTTONS = [
   { mood: 'ENERGETIC', emoji: '⚡', label: 'Energetic' },
@@ -29,17 +27,8 @@ export default function MoodSearchScreen({ navigation }) {
   const searchByMood = async (searchQuery) => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/mood-search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify({ query: searchQuery }),
-      });
-      const data = await response.json();
-      setResults(data);
+      const response = await api.post('/mood-search', { query: searchQuery });
+      setResults(response.data);
     } catch (error) {
       console.error('Error:', error);
     } finally {

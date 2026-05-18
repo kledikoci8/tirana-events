@@ -29,4 +29,5 @@ public class EventDTO {
     private String venue;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Boolean isOutdoor;
 }

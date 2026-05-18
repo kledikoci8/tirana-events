@@ -2,6 +2,7 @@ package com.tirana.events.controller;
 
 import com.tirana.events.dto.*;
 import com.tirana.events.service.CuratorService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/curators")
 @RequiredArgsConstructor
 public class CuratorController {
+    private final CurrentUserService currentUserService;
     private final CuratorService curatorService;
 
     @GetMapping
@@ -35,7 +37,7 @@ public class CuratorController {
     public ResponseEntity<CuratedListDTO> createList(
             @RequestBody CreateCuratedListRequest request,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         // Get curator by userId (simplified)
         return ResponseEntity.ok(curatorService.createCuratedList(userId, request));
     }

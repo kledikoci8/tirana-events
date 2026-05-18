@@ -40,13 +40,13 @@ public class TicketController {
     private UserRepository userRepository;
     
     @PostMapping("/purchase/{eventId}")
-    public ResponseEntity<Ticket> purchaseTicket(@PathVariable Long eventId,
-                                                  Authentication authentication) {
+    public ResponseEntity<TicketDTO> purchaseTicket(@PathVariable Long eventId,
+                                                     Authentication authentication) {
         return ResponseEntity.ok(ticketService.purchaseTicket(eventId, authentication.getName()));
     }
     
     @GetMapping("/my-tickets")
-    public ResponseEntity<List<Ticket>> getMyTickets(Authentication authentication) {
+    public ResponseEntity<List<TicketDTO>> getMyTickets(Authentication authentication) {
         return ResponseEntity.ok(ticketService.getUserTickets(authentication.getName()));
     }
     
@@ -63,7 +63,7 @@ public class TicketController {
             throw new RuntimeException("Unauthorized");
         }
         
-        return ResponseEntity.ok(convertToDTO(ticket));
+        return ResponseEntity.ok(ticketService.toDto(ticket));
     }
     
     @PostMapping("/{id}/download")
@@ -198,25 +198,4 @@ public class TicketController {
             .orElseThrow(() -> new RuntimeException("User not found"));
     }
     
-    private TicketDTO convertToDTO(Ticket ticket) {
-        TicketDTO dto = new TicketDTO();
-        dto.setId(ticket.getId());
-        dto.setQrCode(ticket.getQrCode());
-        dto.setPurchaseDate(ticket.getPurchaseDate());
-        dto.setStatus(ticket.getStatus().name());
-        dto.setIsDownloaded(ticket.getIsDownloaded());
-        dto.setDownloadedAt(ticket.getDownloadedAt());
-        dto.setNfcEnabled(ticket.getNfcEnabled());
-        dto.setCheckedInAt(ticket.getCheckedInAt());
-        
-        if (ticket.getEvent() != null) {
-            dto.setEventId(ticket.getEvent().getId());
-            dto.setEventName(ticket.getEvent().getName());
-            dto.setEventDate(ticket.getEvent().getStartDate());
-            dto.setEventLocation(ticket.getEvent().getLocation());
-            dto.setEventImageUrl(ticket.getEvent().getImageUrl());
-        }
-        
-        return dto;
-    }
 }

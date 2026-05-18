@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 import * as Notifications from 'expo-notifications';
 
 const NotificationSettingsScreen = ({ navigation }) => {
@@ -41,40 +41,15 @@ const NotificationSettingsScreen = ({ navigation }) => {
     if (finalStatus !== 'granted') {
       Alert.alert(
         'Notifications Disabled',
-        'Please enable notifications in your device settings to receive event updates.',
+        'Enable notifications for local ticket reminders. In-app alerts are always stored in your inbox.',
         [{ text: 'OK' }]
       );
-      return;
-    }
-
-    // Get push token and register with backend
-    const token = await Notifications.getExpoPushTokenAsync();
-    registerDeviceToken(token.data);
-  };
-
-  const registerDeviceToken = async (pushToken) => {
-    try {
-      const authToken = await AsyncStorage.getItem('token');
-      await axios.post(
-        'http://localhost:8080/api/notifications/register',
-        {
-          token: pushToken,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'ANDROID'
-        },
-        { headers: { Authorization: `Bearer ${authToken}` } }
-      );
-    } catch (error) {
-      console.error('Error registering device token:', error);
     }
   };
 
   const fetchPreferences = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(
-        'http://localhost:8080/api/notifications/preferences',
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get('/notifications/preferences');
       
       const prefs = response.data;
       setNotifyEventReminder(prefs.notifyEventReminder);
@@ -91,19 +66,14 @@ const NotificationSettingsScreen = ({ navigation }) => {
   const savePreferences = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.put(
-        'http://localhost:8080/api/notifications/preferences',
-        {
-          notifyEventReminder,
-          notifyPriceDrop,
-          notifyFriendActivity,
-          notifyNearbyEvents,
-          quietHoursStart,
-          quietHoursEnd,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/notifications/preferences', {
+        notifyEventReminder,
+        notifyPriceDrop,
+        notifyFriendActivity,
+        notifyNearbyEvents,
+        quietHoursStart,
+        quietHoursEnd,
+      });
       
       Alert.alert('Success', 'Notification preferences saved!');
     } catch (error) {
@@ -146,7 +116,13 @@ const NotificationSettingsScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Notification Types */}
+        <View style={styles.infoBanner}>
+          <Ionicons name="information-circle" size={20} color="#8B5CF6" />
+          <Text style={styles.infoBannerText}>
+            Alerts are saved in your in-app inbox (MySQL). Local reminders fire 24h and 2h before events — no Firebase push.
+          </Text>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notification Types</Text>
           
@@ -394,6 +370,25 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 8,
+    padding: 14,
+    backgroundColor: 'rgba(139,92,246,0.12)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.25)',
+  },
+  infoBannerText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 13,
+    color: '#C4B5FD',
+    lineHeight: 18,
   },
   infoBox: {
     flexDirection: 'row',

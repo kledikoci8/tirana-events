@@ -2,6 +2,7 @@ package com.tirana.events.controller;
 
 import com.tirana.events.dto.EventMemoryDTO;
 import com.tirana.events.service.MemoryWallService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,13 +15,14 @@ import java.util.Map;
 @RequestMapping("/api/memories")
 @RequiredArgsConstructor
 public class MemoryWallController {
+    private final CurrentUserService currentUserService;
     private final MemoryWallService memoryWallService;
 
     @PostMapping
     public ResponseEntity<EventMemoryDTO> uploadMemory(
             @RequestBody Map<String, Object> body,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         Long eventId = Long.parseLong(body.get("eventId").toString());
         String photoUrl = body.get("photoUrl").toString();
         String caption = body.get("caption").toString();
@@ -32,13 +34,13 @@ public class MemoryWallController {
     public ResponseEntity<List<EventMemoryDTO>> getEventMemories(
             @PathVariable Long eventId,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(memoryWallService.getEventMemories(eventId, userId));
     }
 
     @GetMapping("/my-memories")
     public ResponseEntity<List<EventMemoryDTO>> getMyMemories(Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(memoryWallService.getUserMemories(userId));
     }
 

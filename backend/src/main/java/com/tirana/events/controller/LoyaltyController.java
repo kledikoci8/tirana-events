@@ -3,6 +3,7 @@ package com.tirana.events.controller;
 import com.tirana.events.dto.LoyaltyPointsDTO;
 import com.tirana.events.dto.UserTierDTO;
 import com.tirana.events.service.LoyaltyService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,17 +16,18 @@ import java.util.Map;
 @RequestMapping("/api/loyalty")
 @RequiredArgsConstructor
 public class LoyaltyController {
+    private final CurrentUserService currentUserService;
     private final LoyaltyService loyaltyService;
 
     @GetMapping("/tier")
     public ResponseEntity<UserTierDTO> getUserTier(Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(loyaltyService.getUserTier(userId));
     }
 
     @GetMapping("/points/history")
     public ResponseEntity<List<LoyaltyPointsDTO>> getPointsHistory(Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(loyaltyService.getUserPointsHistory(userId));
     }
 
@@ -33,7 +35,7 @@ public class LoyaltyController {
     public ResponseEntity<Void> redeemPoints(
             @RequestBody Map<String, Integer> body,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         loyaltyService.redeemPoints(userId, body.get("points"));
         return ResponseEntity.ok().build();
     }

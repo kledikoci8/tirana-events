@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 export default function CuratorListsScreen({ navigation }) {
   const [curators, setCurators] = useState([]);
@@ -21,9 +21,8 @@ export default function CuratorListsScreen({ navigation }) {
 
   const loadCurators = async () => {
     try {
-      const response = await fetch(`${API_URL}/curators`);
-      const data = await response.json();
-      setCurators(data);
+      const response = await api.get('/curators');
+      setCurators(response.data);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -31,9 +30,8 @@ export default function CuratorListsScreen({ navigation }) {
 
   const loadTrendingLists = async () => {
     try {
-      const response = await fetch(`${API_URL}/curators/lists/trending`);
-      const data = await response.json();
-      setTrendingLists(data);
+      const response = await api.get('/curators/lists/trending');
+      setTrendingLists(response.data);
     } catch (error) {
       console.error('Error:', error);
     }

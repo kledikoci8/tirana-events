@@ -27,6 +27,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import api from '../services/api';
+import { trackEventView } from '../services/eventTracking';
 
 const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = width - 40;
@@ -36,6 +37,7 @@ export default function HomeScreen({ navigation }) {
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [friendsByEvent, setFriendsByEvent] = useState({});
   const scrollY = useSharedValue(0);
   const pulseAnim = useSharedValue(1);
 
@@ -51,14 +53,54 @@ export default function HomeScreen({ navigation }) {
 
   const loadData = async () => {
     try {
-      const [eventsRes, categoriesRes] = await Promise.all([
-        api.get('/events/upcoming'),
-        api.get('/categories'),
-      ]);
-      setEvents(eventsRes.data);
+      const categoriesRes = await api.get('/categories');
       setCategories(categoriesRes.data);
+
+      let list = [];
+      try {
+        const eventsRes = await api.get('/events/recommended?limit=20');
+        list = eventsRes.data;
+      } catch {
+        const eventsRes = await api.get('/events/upcoming');
+        list = eventsRes.data;
+      }
+      setEvents(list);
+      loadFriendsAttending(list);
     } catch (error) {
       console.error('Error loading data:', error);
+    }
+  };
+
+  const loadFriendsAttending = async (eventList) => {
+    const map = {};
+    await Promise.all(
+      (eventList || []).slice(0, 12).map(async (ev) => {
+        try {
+          const res = await api.get(`/social/events/${ev.id}/attendees`);
+          if (res.data?.count > 0) map[ev.id] = res.data;
+        } catch {
+          /* ignore */
+        }
+      })
+    );
+    setFriendsByEvent(map);
+  };
+
+  const applyCategoryFilter = async (categoryId) => {
+    if (!categoryId) {
+      loadData();
+      return;
+    }
+    try {
+      const res = await api.post('/filters/events', {
+        categoryIds: [categoryId],
+        page: 0,
+        size: 30,
+      });
+      setEvents(res.data);
+      loadFriendsAttending(res.data);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -73,6 +115,13 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Error searching:', error);
     }
+  };
+
+  const formatPrice = (item) => {
+    if (item.isFree || item.price == null || item.price === 0) {
+      return 'Free';
+    }
+    return `${Math.round(item.price)} ALL`;
   };
 
   const formatDate = (dateString) => {
@@ -104,7 +153,9 @@ export default function HomeScreen({ navigation }) {
         style={styles.categoryItem}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setSelectedCategory(item.id === selectedCategory ? null : item.id);
+          const next = item.id === selectedCategory ? null : item.id;
+          setSelectedCategory(next);
+          applyCategoryFilter(next);
         }}
       >
         <LinearGradient
@@ -143,6 +194,7 @@ export default function HomeScreen({ navigation }) {
           activeOpacity={0.9}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            trackEventView(item.id);
             navigation.navigate('EventDetail', { eventId: item.id });
           }}
         >
@@ -208,20 +260,18 @@ export default function HomeScreen({ navigation }) {
                     </View>
                   </View>
 
+                  {friendsByEvent[item.id]?.count > 0 && (
+                    <View style={styles.friendsBanner}>
+                      <Ionicons name="people" size={14} color="#A78BFA" />
+                      <Text style={styles.friendsBannerText}>
+                        {friendsByEvent[item.id].count} friend
+                        {friendsByEvent[item.id].count > 1 ? 's' : ''} going
+                      </Text>
+                    </View>
+                  )}
+
                   <View style={styles.eventFooter}>
                     <View style={styles.attendeesContainer}>
-                      <View style={styles.avatarStack}>
-                        {[1, 2, 3].map((i) => (
-                          <View key={i} style={[styles.avatar, { marginLeft: i > 1 ? -8 : 0 }]}>
-                            <LinearGradient
-                              colors={['#8B5CF6', '#EC4899']}
-                              style={styles.avatarGradient}
-                            >
-                              <Ionicons name="person" size={10} color="#FFF" />
-                            </LinearGradient>
-                          </View>
-                        ))}
-                      </View>
                       <Text style={styles.attendeesText}>
                         {item.currentAttendees || 0}+ going
                       </Text>
@@ -229,7 +279,7 @@ export default function HomeScreen({ navigation }) {
 
                     <View style={styles.priceTag}>
                       <Ionicons name="ticket" size={14} color="#10B981" />
-                      <Text style={styles.priceText}>Free</Text>
+                      <Text style={styles.priceText}>{formatPrice(item)}</Text>
                     </View>
                   </View>
                 </View>
@@ -288,7 +338,10 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.logoSub}>EVENTS</Text>
                   </View>
                 </View>
-                <TouchableOpacity style={styles.notificationButton}>
+                <TouchableOpacity
+                  style={styles.notificationButton}
+                  onPress={() => navigation.navigate('NotificationsInbox')}
+                >
                   <BlurView intensity={20} tint="dark" style={styles.notificationBlur}>
                     <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
                     <Animated.View style={[styles.notificationBadge, badgeAnimatedStyle]} />
@@ -328,7 +381,17 @@ export default function HomeScreen({ navigation }) {
                       onChangeText={setSearchQuery}
                       onSubmitEditing={handleSearch}
                     />
-                    <TouchableOpacity style={styles.filterButton}>
+                    <TouchableOpacity
+                      style={styles.filterButton}
+                      onPress={() =>
+                        navigation.navigate('Filter', {
+                          onApplyFilters: (data) => {
+                            setEvents(data);
+                            loadFriendsAttending(data);
+                          },
+                        })
+                      }
+                    >
                       <LinearGradient
                         colors={['#8B5CF6', '#6D28D9']}
                         style={styles.filterGradient}
@@ -684,6 +747,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  friendsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(139,92,246,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  friendsBannerText: {
+    color: '#C4B5FD',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   attendeesText: {
     fontSize: 12,

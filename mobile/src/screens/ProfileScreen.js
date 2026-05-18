@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import api from '../services/api';
 import {
   View,
   Text,
@@ -6,114 +7,146 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProfileScreen() {
+const SECTIONS = [
+  {
+    title: 'Priority 1',
+    items: [
+      { icon: 'people', label: 'Friends & activity', screen: 'Friends' },
+      { icon: 'notifications', label: 'Notification settings', screen: 'NotificationSettings' },
+      { icon: 'mail', label: 'In-app notifications', screen: 'NotificationsInbox' },
+    ],
+  },
+  {
+    title: 'Discover',
+    items: [
+      { icon: 'flash', label: 'Happening now', screen: 'HappeningNow' },
+      { icon: 'sparkles', label: 'Mood search', screen: 'MoodSearch' },
+      { icon: 'star', label: 'Curated lists', screen: 'Curators' },
+    ],
+  },
+  {
+    title: 'Tickets & rewards',
+    items: [
+      { icon: 'people-circle', label: 'Group tickets', screen: 'GroupTickets', params: {} },
+      { icon: 'ribbon', label: 'Loyalty & points', screen: 'Loyalty' },
+      { icon: 'medal', label: 'Badges', screen: 'Badges' },
+    ],
+  },
+  {
+    title: 'Community',
+    items: [
+      { icon: 'chatbubbles', label: 'Community boards', screen: 'Community', params: { boardType: 'GENERAL' } },
+      { icon: 'calendar', label: 'Weekend planner', screen: 'Itineraries' },
+    ],
+  },
+  {
+    title: 'Organiser',
+    items: [
+      { icon: 'analytics', label: 'My events & analytics', screen: 'MyEvents' },
+    ],
+  },
+];
+
+export default function ProfileScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const [profile, setProfile] = useState(null);
 
-  const interests = [
-    { id: 1, name: 'Music', color: '#8B5CF6' },
-    { id: 2, name: 'Design', color: '#EC4899' },
-    { id: 3, name: 'Food', color: '#EF4444' },
-    { id: 4, name: 'Travel', color: '#F59E0B' },
-  ];
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  const menuItems = [
-    { icon: 'bookmark-outline', label: 'Saved Events', count: 12 },
-    { icon: 'people-outline', label: 'Following', count: 45 },
-    { icon: 'heart-outline', label: 'My Reviews', count: 8 },
-    { icon: 'settings-outline', label: 'Settings' },
-  ];
+  const loadProfile = async () => {
+    try {
+      const response = await api.get('/users/me');
+      setProfile(response.data);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const display = profile || user;
+
+  const interests = (display?.interests || []).map((name, index) => ({
+    id: index,
+    name,
+    color: '#8B5CF6',
+  }));
+
+  const go = (screen, params) => navigation.navigate(screen, params);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={['#0A0A0F', '#1A1A24']} style={styles.gradient}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity style={styles.editButton}>
-              <Ionicons name="create-outline" size={20} color="#8B5CF6" />
-            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
           </View>
 
-          {/* Profile Info */}
           <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              <LinearGradient
-                colors={['#8B5CF6', '#EC4899']}
-                style={styles.avatarGradient}
-              >
-                <Text style={styles.avatarText}>
-                  {user?.fullName?.charAt(0) || 'U'}
-                </Text>
-              </LinearGradient>
-            </View>
-            <Text style={styles.name}>{user?.fullName || 'User'}</Text>
-            <Text style={styles.email}>{user?.email}</Text>
+            <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.avatarGradient}>
+              <Text style={styles.avatarText}>{display?.fullName?.charAt(0) || 'U'}</Text>
+            </LinearGradient>
+            <Text style={styles.name}>{display?.fullName || 'User'}</Text>
+            <Text style={styles.email}>{display?.email}</Text>
 
             <View style={styles.stats}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>15</Text>
+                <Text style={styles.statValue}>{display?.eventsCount ?? 0}</Text>
                 <Text style={styles.statLabel}>Events</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>45</Text>
-                <Text style={styles.statLabel}>Following</Text>
+                <Text style={styles.statValue}>{display?.ticketsCount ?? 0}</Text>
+                <Text style={styles.statLabel}>Tickets</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>32</Text>
-                <Text style={styles.statLabel}>Followers</Text>
+                <Text style={styles.statValue}>{display?.savedCount ?? 0}</Text>
+                <Text style={styles.statLabel}>Saved</Text>
               </View>
             </View>
           </View>
 
-          {/* Interests */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>My Interests</Text>
-            <View style={styles.interestsContainer}>
-              {interests.map((interest) => (
-                <View
-                  key={interest.id}
-                  style={[styles.interestChip, { backgroundColor: interest.color + '20' }]}
+          {interests.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>My interests</Text>
+              <View style={styles.interestsContainer}>
+                {interests.map((interest) => (
+                  <View key={interest.id} style={[styles.interestChip, { backgroundColor: interest.color + '20' }]}>
+                    <Text style={[styles.interestText, { color: interest.color }]}>{interest.name}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {SECTIONS.map((section) => (
+            <View key={section.title} style={styles.section}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              {section.items.map((item) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={styles.menuItem}
+                  onPress={() => go(item.screen, item.params)}
                 >
-                  <Text style={[styles.interestText, { color: interest.color }]}>
-                    {interest.name}
-                  </Text>
-                </View>
+                  <View style={styles.menuItemLeft}>
+                    <View style={styles.menuIcon}>
+                      <Ionicons name={item.icon} size={20} color="#8B5CF6" />
+                    </View>
+                    <Text style={styles.menuLabel}>{item.label}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+                </TouchableOpacity>
               ))}
             </View>
-          </View>
+          ))}
 
-          {/* Menu Items */}
-          <View style={styles.section}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity key={index} style={styles.menuItem}>
-                <View style={styles.menuItemLeft}>
-                  <View style={styles.menuIcon}>
-                    <Ionicons name={item.icon} size={20} color="#8B5CF6" />
-                  </View>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
-                </View>
-                <View style={styles.menuItemRight}>
-                  {item.count && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{item.count}</Text>
-                    </View>
-                  )}
-                  <Ionicons name="chevron-forward" size={20} color="#6B7280" />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={logout}>
             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
             <Text style={styles.logoutText}>Logout</Text>
@@ -125,56 +158,22 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0A0F',
-  },
-  gradient: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    alignItems: 'flex-end',
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1F1F2E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileSection: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
-  avatarContainer: {
-    marginBottom: 16,
-  },
+  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  gradient: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 8 },
+  headerTitle: { fontSize: 32, fontWeight: 'bold', color: '#FFF' },
+  profileSection: { alignItems: 'center', paddingHorizontal: 20, paddingBottom: 24 },
   avatarGradient: {
     width: 100,
     height: 100,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
   },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    color: '#9CA3AF',
-  },
+  avatarText: { fontSize: 40, fontWeight: 'bold', color: '#FFF' },
+  name: { fontSize: 24, fontWeight: 'bold', color: '#FFF', marginBottom: 4 },
+  email: { fontSize: 14, color: '#9CA3AF' },
   stats: {
     flexDirection: 'row',
     marginTop: 24,
@@ -183,38 +182,13 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '100%',
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#2A2A3C',
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  interestsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  statItem: { flex: 1, alignItems: 'center' },
+  statValue: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
+  statLabel: { fontSize: 12, color: '#9CA3AF', marginTop: 4 },
+  statDivider: { width: 1, backgroundColor: '#2A2A3C' },
+  section: { paddingHorizontal: 20, marginBottom: 20 },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: '#6B7280', marginBottom: 12, textTransform: 'uppercase' },
+  interestsContainer: { flexDirection: 'row', flexWrap: 'wrap' },
   interestChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -222,10 +196,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
-  interestText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  interestText: { fontSize: 14, fontWeight: '600' },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -233,13 +204,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F1F2E',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 10,
   },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   menuIcon: {
     width: 40,
     height: 40,
@@ -249,26 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  menuLabel: {
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  menuItemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badge: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginRight: 8,
-  },
-  badgeText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
+  menuLabel: { fontSize: 16, color: '#FFF' },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -281,10 +229,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF4444',
   },
-  logoutText: {
-    fontSize: 16,
-    color: '#EF4444',
-    fontWeight: '600',
-    marginLeft: 8,
-  },
+  logoutText: { fontSize: 16, color: '#EF4444', fontWeight: '600', marginLeft: 8 },
 });

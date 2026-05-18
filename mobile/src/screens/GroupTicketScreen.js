@@ -9,26 +9,24 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
-const API_URL = 'http://192.168.1.6:8080/api';
-
-export default function GroupTicketScreen({ navigation }) {
+export default function GroupTicketScreen({ route, navigation }) {
+  const eventId = route.params?.eventId;
   const [groupTickets, setGroupTickets] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadGroupTickets();
-  }, []);
+  }, [eventId]);
 
   const loadGroupTickets = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/group-tickets/my-groups`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setGroupTickets(data);
+      const response = await api.get('/group-tickets/my-groups');
+      const groups = response.data || [];
+      setGroupTickets(
+        eventId ? groups.filter((g) => g.eventId === eventId) : groups
+      );
     } catch (error) {
       console.error('Error loading group tickets:', error);
     }
@@ -36,11 +34,7 @@ export default function GroupTicketScreen({ navigation }) {
 
   const payForTicket = async (participantId) => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await fetch(`${API_URL}/group-tickets/participants/${participantId}/pay`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/group-tickets/participants/${participantId}/pay`);
       loadGroupTickets();
     } catch (error) {
       console.error('Error paying:', error);

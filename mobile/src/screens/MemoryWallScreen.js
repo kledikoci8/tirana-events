@@ -8,9 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 const { width } = Dimensions.get('window');
 const ITEM_SIZE = (width - 48) / 2;
 
@@ -24,12 +22,8 @@ export default function MemoryWallScreen({ route }) {
 
   const loadMemories = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/memories/events/${eventId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setMemories(data);
+      const response = await api.get(`/memories/events/${eventId}`);
+      setMemories(response.data);
     } catch (error) {
       console.error('Error loading memories:', error);
     }
@@ -37,11 +31,7 @@ export default function MemoryWallScreen({ route }) {
 
   const likeMemory = async (memoryId) => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await fetch(`${API_URL}/memories/${memoryId}/like`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/memories/${memoryId}/like`);
       loadMemories();
     } catch (error) {
       console.error('Error liking memory:', error);

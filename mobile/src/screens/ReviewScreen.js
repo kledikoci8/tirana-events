@@ -8,9 +8,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 const VIBE_TAGS = [
   'Great music',
@@ -39,12 +37,8 @@ export default function ReviewScreen({ route, navigation }) {
 
   const loadReviews = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/reviews/events/${eventId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setReviews(data);
+      const response = await api.get(`/reviews/events/${eventId}`);
+      setReviews(response.data);
     } catch (error) {
       console.error('Error loading reviews:', error);
     }
@@ -52,12 +46,8 @@ export default function ReviewScreen({ route, navigation }) {
 
   const loadAverageRating = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/reviews/events/${eventId}/rating`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setAverageRating(data.averageRating);
+      const response = await api.get(`/reviews/events/${eventId}/rating`);
+      setAverageRating(response.data.averageRating);
     } catch (error) {
       console.error('Error loading rating:', error);
     }
@@ -65,19 +55,11 @@ export default function ReviewScreen({ route, navigation }) {
 
   const submitReview = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await fetch(`${API_URL}/reviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          eventId,
-          rating,
-          comment,
-          vibeTags: selectedTags,
-        }),
+      await api.post('/reviews', {
+        eventId,
+        rating,
+        comment,
+        vibeTags: selectedTags,
       });
       
       setShowForm(false);

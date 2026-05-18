@@ -103,8 +103,8 @@ public class ReviewService {
         EventReviewDTO dto = new EventReviewDTO();
         dto.setId(review.getId());
         dto.setUserId(review.getUser().getId());
-        dto.setUserName(review.getUser().getName());
-        dto.setUserAvatar(review.getUser().getProfilePicture());
+        dto.setUserName(review.getUser().getFullName());
+        dto.setUserAvatar(review.getUser().getProfileImage());
         dto.setEventId(review.getEvent().getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());

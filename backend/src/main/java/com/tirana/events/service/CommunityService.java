@@ -102,8 +102,8 @@ public class CommunityService {
         CommunityPostDTO dto = new CommunityPostDTO();
         dto.setId(post.getId());
         dto.setUserId(post.getUser().getId());
-        dto.setUserName(post.getUser().getName());
-        dto.setUserAvatar(post.getUser().getProfilePicture());
+        dto.setUserName(post.getUser().getFullName());
+        dto.setUserAvatar(post.getUser().getProfileImage());
         
         if (post.getEvent() != null) {
             dto.setEventId(post.getEvent().getId());
@@ -126,8 +126,8 @@ public class CommunityService {
         CommunityCommentDTO dto = new CommunityCommentDTO();
         dto.setId(comment.getId());
         dto.setUserId(comment.getUser().getId());
-        dto.setUserName(comment.getUser().getName());
-        dto.setUserAvatar(comment.getUser().getProfilePicture());
+        dto.setUserName(comment.getUser().getFullName());
+        dto.setUserAvatar(comment.getUser().getProfileImage());
         dto.setContent(comment.getContent());
         dto.setUpvotes(comment.getUpvotes());
         dto.setCreatedAt(comment.getCreatedAt());

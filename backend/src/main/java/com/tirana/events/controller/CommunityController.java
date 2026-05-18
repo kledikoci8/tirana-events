@@ -2,6 +2,7 @@ package com.tirana.events.controller;
 
 import com.tirana.events.dto.*;
 import com.tirana.events.service.CommunityService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,13 +15,14 @@ import java.util.Map;
 @RequestMapping("/api/community")
 @RequiredArgsConstructor
 public class CommunityController {
+    private final CurrentUserService currentUserService;
     private final CommunityService communityService;
 
     @PostMapping("/posts")
     public ResponseEntity<CommunityPostDTO> createPost(
             @RequestBody CreateCommunityPostRequest request,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(communityService.createPost(userId, request));
     }
 
@@ -45,7 +47,7 @@ public class CommunityController {
             @PathVariable Long postId,
             @RequestBody Map<String, String> body,
             Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(communityService.addComment(postId, userId, body.get("content")));
     }
 

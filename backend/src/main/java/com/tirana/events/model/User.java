@@ -1,5 +1,6 @@
 package com.tirana.events.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
     
@@ -55,4 +57,13 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "following_id")
     )
     private Set<User> following = new HashSet<>();
+    
+    // Convenience methods for backward compatibility
+    public String getName() {
+        return fullName;
+    }
+    
+    public String getProfilePicture() {
+        return profileImage;
+    }
 }

@@ -130,6 +130,7 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>17</release>
+                    <fork>false</fork>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
@@ -140,7 +141,6 @@
                             <version>1.18.34</version>
                         </path>
                     </annotationProcessorPaths>
-                    <fork>true</fork>
                 </configuration>
             </plugin>
             <plugin>

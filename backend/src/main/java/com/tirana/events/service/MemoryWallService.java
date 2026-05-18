@@ -18,6 +18,7 @@ public class MemoryWallService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final EventCheckInRepository checkInRepository;
+    private final TicketRepository ticketRepository;
 
     @Transactional
     public EventMemoryDTO uploadMemory(Long userId, Long eventId, String photoUrl, String caption) {
@@ -27,9 +28,10 @@ public class MemoryWallService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Verify user attended the event
-        boolean attended = checkInRepository.existsByTicketId(userId);
-        if (!attended) {
+        // Verify user has a ticket or check-in for this event
+        boolean hasTicket = ticketRepository.existsByUserIdAndEventId(userId, eventId);
+        boolean checkedIn = checkInRepository.findByTicketId(userId).isPresent();
+        if (!hasTicket && !checkedIn) {
             throw new RuntimeException("You must attend the event to upload memories");
         }
 
@@ -98,8 +100,8 @@ public class MemoryWallService {
         EventMemoryDTO dto = new EventMemoryDTO();
         dto.setId(memory.getId());
         dto.setUserId(memory.getUser().getId());
-        dto.setUserName(memory.getUser().getName());
-        dto.setUserAvatar(memory.getUser().getProfilePicture());
+        dto.setUserName(memory.getUser().getFullName());
+        dto.setUserAvatar(memory.getUser().getProfileImage());
         dto.setEventId(memory.getEvent().getId());
         dto.setPhotoUrl(memory.getPhotoUrl());
         dto.setCaption(memory.getCaption());

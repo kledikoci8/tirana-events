@@ -2,6 +2,7 @@ package com.tirana.events.controller;
 
 import com.tirana.events.dto.CheckInDTO;
 import com.tirana.events.service.CheckInService;
+import com.tirana.events.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import java.util.List;
 @RequestMapping("/api/checkin")
 @RequiredArgsConstructor
 public class CheckInController {
+    private final CurrentUserService currentUserService;
     private final CheckInService checkInService;
 
     @PostMapping("/tickets/{ticketId}")
@@ -22,7 +24,7 @@ public class CheckInController {
 
     @GetMapping("/my-checkins")
     public ResponseEntity<List<CheckInDTO>> getMyCheckIns(Authentication auth) {
-        Long userId = Long.parseLong(auth.getName());
+        Long userId = currentUserService.requireUserId(auth);
         return ResponseEntity.ok(checkInService.getUserCheckIns(userId));
     }
 

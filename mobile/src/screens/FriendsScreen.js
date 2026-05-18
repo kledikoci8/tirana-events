@@ -10,8 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
 const FriendsScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('friends'); // 'friends' or 'activity'
@@ -27,14 +26,11 @@ const FriendsScreen = ({ navigation }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (activeTab === 'friends') {
-        const response = await axios.get('http://localhost:8080/api/social/friends', { headers });
+        const response = await api.get('/social/friends');
         setFriends(response.data);
       } else {
-        const response = await axios.get('http://localhost:8080/api/social/activity/feed?limit=50', { headers });
+        const response = await api.get('/social/activity/feed?limit=50');
         setActivities(response.data);
       }
     } catch (error) {
@@ -52,10 +48,7 @@ const FriendsScreen = ({ navigation }) => {
 
   const unfollowFriend = async (userId) => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/social/friends/${userId}/unfollow`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/social/friends/${userId}/unfollow`);
       fetchData();
     } catch (error) {
       console.error('Error unfollowing:', error);

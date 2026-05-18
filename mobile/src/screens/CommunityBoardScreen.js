@@ -9,9 +9,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 const BOARD_TYPES = [
   { id: 'GENERAL', label: 'General', icon: '💬' },
@@ -32,9 +30,8 @@ export default function CommunityBoardScreen({ navigation }) {
 
   const loadPosts = async () => {
     try {
-      const response = await fetch(`${API_URL}/community/boards/${selectedBoard}`);
-      const data = await response.json();
-      setPosts(data);
+      const response = await api.get(`/community/boards/${selectedBoard}`);
+      setPosts(response.data);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -42,18 +39,10 @@ export default function CommunityBoardScreen({ navigation }) {
 
   const createPost = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await fetch(`${API_URL}/community/posts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          boardType: selectedBoard,
-          title: newPost.title,
-          content: newPost.content,
-        }),
+      await api.post('/community/posts', {
+        boardType: selectedBoard,
+        title: newPost.title,
+        content: newPost.content,
       });
       setShowCreateModal(false);
       setNewPost({ title: '', content: '' });
@@ -65,7 +54,7 @@ export default function CommunityBoardScreen({ navigation }) {
 
   const upvotePost = async (postId) => {
     try {
-      await fetch(`${API_URL}/community/posts/${postId}/upvote`, { method: 'POST' });
+      await api.post(`/community/posts/${postId}/upvote`);
       loadPosts();
     } catch (error) {
       console.error('Error:', error);

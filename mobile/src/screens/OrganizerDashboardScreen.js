@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
 const OrganizerDashboardScreen = ({ route, navigation }) => {
   const { eventId, eventName } = route.params;
@@ -32,14 +31,11 @@ const OrganizerDashboardScreen = ({ route, navigation }) => {
 
   const fetchAnalytics = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [overviewRes, funnelRes, trafficRes, revenueRes] = await Promise.all([
-        axios.get(`http://localhost:8080/api/analytics/events/${eventId}/overview`, { headers }),
-        axios.get(`http://localhost:8080/api/analytics/events/${eventId}/funnel`, { headers }),
-        axios.get(`http://localhost:8080/api/analytics/events/${eventId}/traffic`, { headers }),
-        axios.get(`http://localhost:8080/api/analytics/events/${eventId}/revenue`, { headers }),
+        api.get(`/analytics/events/${eventId}/overview`),
+        api.get(`/analytics/events/${eventId}/funnel`),
+        api.get(`/analytics/events/${eventId}/traffic`),
+        api.get(`/analytics/events/${eventId}/revenue`),
       ]);
 
       setAnalytics(overviewRes.data);
@@ -62,11 +58,7 @@ const OrganizerDashboardScreen = ({ route, navigation }) => {
 
   const exportCSV = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:8080/api/analytics/events/${eventId}/export`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get(`/analytics/events/${eventId}/export`);
 
       // In a real app, you'd save this to a file or share it
       Share.share({

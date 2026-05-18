@@ -54,7 +54,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                .requestMatchers("/api/events/search", "/api/events/upcoming", "/api/events/{id}").permitAll()
+                .requestMatchers("/api/events/search", "/api/events/upcoming", "/api/events/recommended",
+                        "/api/events/nearby", "/api/events/{id}").permitAll()
                 .requestMatchers("/api/categories/**").permitAll()
                 .anyRequest().authenticated()
             )

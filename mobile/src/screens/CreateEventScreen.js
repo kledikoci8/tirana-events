@@ -15,6 +15,7 @@ import api from '../services/api';
 
 export default function CreateEventScreen({ navigation }) {
   const [categories, setCategories] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -39,24 +40,35 @@ export default function CreateEventScreen({ navigation }) {
   };
 
   const handleCreate = async () => {
+    if (submitting) return;
     if (!formData.name || !formData.location || !formData.categoryId) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
+    setSubmitting(true);
     try {
       const eventData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        location: formData.location,
+        categoryId: formData.categoryId,
+        imageUrl: formData.imageUrl || null,
         startDate: new Date().toISOString(),
-        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : null,
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees, 10) : null,
       };
 
       await api.post('/events', eventData);
       Alert.alert('Success', 'Event created successfully!');
       navigation.navigate('Home');
     } catch (error) {
-      Alert.alert('Error', 'Failed to create event');
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || error.message || 'Failed to create event'
+      );
       console.error('Error creating event:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 

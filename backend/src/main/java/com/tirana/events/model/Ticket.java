@@ -30,6 +30,9 @@ public class Ticket {
     @Column(nullable = false)
     private LocalDateTime purchaseDate = LocalDateTime.now();
     
+    /** Actual amount paid; may differ from event price (early bird, group split, etc.). */
+    private Double price;
+    
     @Enumerated(EnumType.STRING)
     private TicketStatus status = TicketStatus.ACTIVE;
     
@@ -58,5 +61,14 @@ public class Ticket {
         USED, 
         CANCELLED,
         TRANSFERRED
+    }
+    
+    // Convenience methods for backward compatibility
+    public void setPurchasedAt(LocalDateTime purchasedAt) {
+        this.purchaseDate = purchasedAt;
+    }
+    
+    public LocalDateTime getPurchasedAt() {
+        return this.purchaseDate;
     }
 }

@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -26,10 +26,7 @@ const OnboardingScreen = ({ navigation }) => {
 
   const fetchCategories = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/categories', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/categories');
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -54,15 +51,11 @@ const OnboardingScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.post(
-        'http://localhost:8080/api/personalization/onboarding/complete',
-        { categoryIds: selectedCategories },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      await api.post('/personalization/onboarding/complete', {
+        categoryIds: selectedCategories,
+      });
       await AsyncStorage.setItem('onboardingCompleted', 'true');
-      navigation.replace('MainTabs');
+      navigation.replace('Main');
     } catch (error) {
       console.error('Error completing onboarding:', error);
       alert('Failed to save preferences. Please try again.');
@@ -173,7 +166,7 @@ const OnboardingScreen = ({ navigation }) => {
           {/* Skip Button */}
           <TouchableOpacity
             style={styles.skipButton}
-            onPress={() => navigation.replace('MainTabs')}
+            onPress={() => navigation.replace('Main')}
           >
             <Text style={styles.skipText}>Skip for now</Text>
           </TouchableOpacity>

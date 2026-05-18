@@ -11,8 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
 const EventChatScreen = ({ route, navigation }) => {
   const { eventId, eventName } = route.params;
@@ -30,11 +29,7 @@ const EventChatScreen = ({ route, navigation }) => {
 
   const fetchMessages = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:8080/api/social/events/${eventId}/chat`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.get(`/social/events/${eventId}/chat`);
       setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -46,12 +41,10 @@ const EventChatScreen = ({ route, navigation }) => {
 
     setSending(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.post(
-        `http://localhost:8080/api/social/events/${eventId}/chat`,
-        { message: newMessage.trim(), replyToId: null },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/social/events/${eventId}/chat`, {
+        message: newMessage.trim(),
+        replyToId: null,
+      });
       
       setNewMessage('');
       fetchMessages();

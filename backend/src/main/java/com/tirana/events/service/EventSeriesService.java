@@ -29,7 +29,7 @@ public class EventSeriesService {
         dto.setDescription(series.getDescription());
         dto.setCoverImageUrl(series.getCoverImageUrl());
         dto.setOrganizerId(series.getOrganizer().getId());
-        dto.setOrganizerName(series.getOrganizer().getName());
+        dto.setOrganizerName(series.getOrganizer().getFullName());
         dto.setCreatedAt(series.getCreatedAt());
         dto.setTotalEvents(series.getEvents() != null ? series.getEvents().size() : 0);
         return dto;

@@ -20,6 +20,7 @@ public class SocialService {
     private final EventInviteRepository inviteRepository;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     
     /**
      * Record friend activity
@@ -60,6 +61,11 @@ public class SocialService {
             return List.of();
         }
         
+        List<User> fromTickets = ticketRepository.findFriendsWithTicketsForEvent(event, friends);
+        if (!fromTickets.isEmpty()) {
+            return fromTickets;
+        }
+        
         return activityRepository.findFriendsAttendingEvent(event, friends).stream()
             .map(FriendActivity::getUser)
             .distinct()
@@ -76,7 +82,32 @@ public class SocialService {
             return 0L;
         }
         
+        Long ticketCount = ticketRepository.countFriendsWithTicketsForEvent(event, friends);
+        if (ticketCount != null && ticketCount > 0) {
+            return ticketCount;
+        }
+        
         return activityRepository.countFriendsAttendingEvent(event, friends);
+    }
+
+    /**
+     * Notify users who follow the purchaser about their ticket purchase
+     */
+    @Transactional(readOnly = true)
+    public void notifyFollowersOfPurchase(User purchaser, Event event) {
+        List<User> followers = userRepository.findUsersFollowing(purchaser.getId());
+        for (User follower : followers) {
+            try {
+                notificationService.notifyFriendActivity(follower, purchaser, event);
+            } catch (Exception ignored) {
+                // best-effort
+            }
+        }
+    }
+
+    public EventInvite getInviteByToken(String token) {
+        return inviteRepository.findByInviteToken(token)
+            .orElseThrow(() -> new RuntimeException("Invite not found"));
     }
     
     /**

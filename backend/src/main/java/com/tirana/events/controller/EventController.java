@@ -29,12 +29,35 @@ public class EventController {
         String email = authentication != null ? authentication.getName() : null;
         return ResponseEntity.ok(eventService.getUpcomingEvents(email));
     }
+
+    @GetMapping("/recommended")
+    public ResponseEntity<List<EventDTO>> getRecommendedEvents(
+            Authentication authentication,
+            @RequestParam(defaultValue = "20") int limit) {
+        String email = authentication != null ? authentication.getName() : null;
+        return ResponseEntity.ok(eventService.getRecommendedEvents(email, limit));
+    }
+
+    @GetMapping("/nearby")
+    public ResponseEntity<List<EventDTO>> getNearbyEvents(
+            @RequestParam Double lat,
+            @RequestParam Double lng,
+            @RequestParam(defaultValue = "10") Double radiusKm,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        return ResponseEntity.ok(eventService.getNearbyEvents(lat, lng, radiusKm, email));
+    }
     
     @GetMapping("/search")
     public ResponseEntity<List<EventDTO>> searchEvents(@RequestParam String query,
                                                         Authentication authentication) {
         String email = authentication != null ? authentication.getName() : null;
         return ResponseEntity.ok(eventService.searchEvents(query, email));
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<EventDTO>> getMyEvents(Authentication authentication) {
+        return ResponseEntity.ok(eventService.getEventsByOrganizer(authentication.getName()));
     }
     
     @GetMapping("/{id}")

@@ -170,8 +170,10 @@ public class SocialController {
     
     @GetMapping("/invites/{token}")
     public ResponseEntity<EventInviteDTO> getInviteDetails(@PathVariable String token) {
-        EventInvite invite = socialService.acceptInvite(token, null);
-        return ResponseEntity.ok(convertInviteToDTO(invite));
+        EventInvite invite = socialService.getInviteByToken(token);
+        EventInviteDTO dto = convertInviteToDTO(invite);
+        dto.setDeepLink(socialService.getInviteDeepLink(invite));
+        return ResponseEntity.ok(dto);
     }
     
     private User getCurrentUser(Authentication authentication) {

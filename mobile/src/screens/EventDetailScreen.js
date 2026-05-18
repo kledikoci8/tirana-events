@@ -9,6 +9,7 @@ import {
   StatusBar,
   Dimensions,
   Alert,
+  Share,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -26,6 +27,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import api from '../services/api';
+import { trackEventView, trackEventSave } from '../services/eventTracking';
+import { cacheTickets } from '../services/offlineTickets';
+import { scheduleTicketReminders } from '../services/localNotifications';
 
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = 400;
@@ -35,6 +39,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params;
   const [event, setEvent] = useState(null);
+  const [friendsAttending, setFriendsAttending] = useState(null);
   const [loading, setLoading] = useState(true);
   const scrollY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -47,6 +52,13 @@ export default function EventDetailScreen({ route, navigation }) {
     try {
       const response = await api.get(`/events/${eventId}`);
       setEvent(response.data);
+      trackEventView(eventId);
+      try {
+        const att = await api.get(`/social/events/${eventId}/attendees`);
+        setFriendsAttending(att.data);
+      } catch {
+        /* optional */
+      }
     } catch (error) {
       console.error('Error loading event:', error);
       Alert.alert('Error', 'Failed to load event details');
@@ -103,12 +115,32 @@ export default function EventDetailScreen({ route, navigation }) {
     return { opacity };
   });
 
+  const formatPrice = () => {
+    if (!event) return 'Free';
+    if (event.isFree || event.price == null || event.price === 0) {
+      return 'Free';
+    }
+    return `${Math.round(event.price)} ALL`;
+  };
+
+  const isSoldOut =
+    event?.maxAttendees != null &&
+    (event.currentAttendees || 0) >= event.maxAttendees;
+
   const handleGetTicket = async () => {
+    if (isSoldOut) {
+      Alert.alert('Sold out', 'Tickets are no longer available for this event.');
+      return;
+    }
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      await api.post(`/tickets/purchase/${eventId}`);
+      const purchaseRes = await api.post(`/tickets/purchase/${eventId}`);
+      const ticket = purchaseRes.data;
+      const cached = await api.get('/tickets/my-tickets').catch(() => ({ data: [ticket] }));
+      await cacheTickets(cached.data);
+      await scheduleTicketReminders(ticket);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Success', 'Ticket purchased successfully!');
+      Alert.alert('Success', 'Ticket purchased and saved for offline use!');
       navigation.navigate('Tickets');
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -124,10 +156,20 @@ export default function EventDetailScreen({ route, navigation }) {
       } else {
         await api.post(`/events/${eventId}/save`);
       }
-      setEvent({ ...event, isSaved: !event.isSaved });
+      const saved = !event.isSaved;
+      setEvent({ ...event, isSaved: saved });
+      if (saved) trackEventSave(eventId);
     } catch (error) {
       console.error('Error saving event:', error);
     }
+  };
+
+  const shareEvent = async () => {
+    const link = `tiranaevents://event/${eventId}`;
+    await Share.share({
+      message: `${event.name}\n${event.location}\n${link}`,
+      title: event.name,
+    });
   };
 
   if (loading || !event) {
@@ -238,7 +280,7 @@ export default function EventDetailScreen({ route, navigation }) {
               />
             </BlurView>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={shareEvent}>
             <BlurView intensity={20} tint="dark" style={styles.actionButtonBlur}>
               <Ionicons name="share-outline" size={24} color="#FFFFFF" />
             </BlurView>
@@ -274,12 +316,53 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Ionicons name="people" size={20} color="#8B5CF6" />
                 <Text style={styles.statText}>{event.currentAttendees || 0} going</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="eye" size={20} color="#8B5CF6" />
-                <Text style={styles.statText}>2.4k views</Text>
-              </View>
+              {friendsAttending?.count > 0 && (
+                <>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Ionicons name="heart" size={20} color="#EC4899" />
+                    <Text style={styles.statText}>
+                      {friendsAttending.count} friend{friendsAttending.count > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.quickActions}
+            >
+              <TouchableOpacity
+                style={styles.quickChip}
+                onPress={() => navigation.navigate('EventChat', { eventId })}
+              >
+                <Ionicons name="chatbubbles-outline" size={16} color="#8B5CF6" />
+                <Text style={styles.quickChipText}>Chat</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickChip}
+                onPress={() => navigation.navigate('Reviews', { eventId })}
+              >
+                <Ionicons name="star-outline" size={16} color="#8B5CF6" />
+                <Text style={styles.quickChipText}>Reviews</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickChip}
+                onPress={() => navigation.navigate('GroupTickets', { eventId })}
+              >
+                <Ionicons name="people-outline" size={16} color="#8B5CF6" />
+                <Text style={styles.quickChipText}>Group</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickChip}
+                onPress={() => navigation.navigate('MemoryWall', { eventId })}
+              >
+                <Ionicons name="images-outline" size={16} color="#8B5CF6" />
+                <Text style={styles.quickChipText}>Photos</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </Animated.View>
 
           {/* Info Cards */}
@@ -444,21 +527,26 @@ export default function EventDetailScreen({ route, navigation }) {
           >
             <View style={styles.priceContainer}>
               <Text style={styles.priceLabel}>Price</Text>
-              <Text style={styles.priceValue}>Free</Text>
+              <Text style={styles.priceValue}>{formatPrice()}</Text>
             </View>
             <TouchableOpacity
-              style={styles.ticketButton}
+              style={[styles.ticketButton, isSoldOut && styles.ticketButtonDisabled]}
               onPress={handleGetTicket}
               activeOpacity={0.8}
+              disabled={isSoldOut}
             >
               <LinearGradient
-                colors={['#8B5CF6', '#6D28D9']}
+                colors={isSoldOut ? ['#4B5563', '#374151'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.ticketButtonGradient}
               >
-                <Text style={styles.ticketButtonText}>Get Ticket</Text>
-                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                <Text style={styles.ticketButtonText}>
+                  {isSoldOut ? 'Sold Out' : 'Get Ticket'}
+                </Text>
+                {!isSoldOut && (
+                  <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </LinearGradient>
@@ -620,6 +708,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(139,92,246,0.3)',
     marginHorizontal: 16,
   },
+  quickActions: {
+    marginTop: 16,
+  },
+  quickChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(139,92,246,0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.3)',
+  },
+  quickChipText: {
+    color: '#C4B5FD',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
   infoCard: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -779,6 +887,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#10B981',
+  },
+  ticketButtonDisabled: {
+    opacity: 0.85,
   },
   ticketButton: {
     flex: 1,

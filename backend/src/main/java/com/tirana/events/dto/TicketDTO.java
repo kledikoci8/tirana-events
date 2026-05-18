@@ -13,6 +13,7 @@ public class TicketDTO {
     private LocalDateTime downloadedAt;
     private Boolean nfcEnabled;
     private LocalDateTime checkedInAt;
+    private Double price;
     
     // Event details
     private Long eventId;

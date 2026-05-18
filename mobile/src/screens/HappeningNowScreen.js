@@ -9,8 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import * as Location from 'expo-location';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 export default function HappeningNowScreen({ navigation }) {
   const [events, setEvents] = useState([]);
@@ -32,10 +31,11 @@ export default function HappeningNowScreen({ navigation }) {
 
   const loadEvents = async () => {
     try {
-      const params = location ? `?lat=${location.latitude}&lon=${location.longitude}` : '';
-      const response = await fetch(`${API_URL}/happening-now${params}`);
-      const data = await response.json();
-      setEvents(data);
+      const params = location
+        ? `?lat=${location.latitude}&lon=${location.longitude}`
+        : '';
+      const response = await api.get(`/happening-now${params}`);
+      setEvents(response.data);
     } catch (error) {
       console.error('Error loading events:', error);
     } finally {

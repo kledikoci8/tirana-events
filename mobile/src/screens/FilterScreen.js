@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import api from '../services/api';
 
 const FilterScreen = ({ navigation, route }) => {
   const { onApplyFilters } = route.params || {};
@@ -48,10 +48,7 @@ const FilterScreen = ({ navigation, route }) => {
 
   const fetchCategories = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/categories', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/categories');
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -84,12 +81,13 @@ const FilterScreen = ({ navigation, route }) => {
     };
 
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.post(
-        'http://localhost:8080/api/filters/events',
-        filters,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({});
+        filters.userLatitude = loc.coords.latitude;
+        filters.userLongitude = loc.coords.longitude;
+      }
+      const response = await api.post('/filters/events', filters);
       
       if (onApplyFilters) {
         onApplyFilters(response.data);

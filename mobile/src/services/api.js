@@ -1,20 +1,31 @@
 import axios from 'axios';
-
-// Change this to your computer's IP address when testing on physical device
-// For iOS simulator use: http://localhost:8080
-// For Android emulator use: http://10.0.2.2:8080
-// For physical device use: http://YOUR_IP:8080
-
-// Choose the appropriate URL based on your testing environment:
-const API_URL = 'http://localhost:8080/api';  // iOS Simulator
-// const API_URL = 'http://10.0.2.2:8080/api';  // Android Emulator
-// const API_URL = 'http://192.168.1.6:8080/api';  // Physical Device
+import { API_BASE_URL } from '../config/apiConfig';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+let onUnauthorized = null;
+
+export const setUnauthorizedHandler = (handler) => {
+  onUnauthorized = handler;
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && onUnauthorized) {
+      onUnauthorized();
+    }
+    if (error.code === 'ECONNABORTED') {
+      error.message = 'Connection timed out. Tap to retry.';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

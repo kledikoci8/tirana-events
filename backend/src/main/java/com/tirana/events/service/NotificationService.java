@@ -85,8 +85,10 @@ public class NotificationService {
     @Transactional
     public void sendNotification(PushNotification notification) {
         if (FirebaseApp.getApps().isEmpty()) {
-            notification.setStatus(PushNotification.NotificationStatus.FAILED);
-            notification.setErrorMessage("Firebase not configured");
+            // In-app delivery: notification is stored in MySQL for the client to fetch
+            notification.setStatus(PushNotification.NotificationStatus.SENT);
+            notification.setSentAt(LocalDateTime.now());
+            notification.setErrorMessage(null);
             notificationRepository.save(notification);
             return;
         }

@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 const TIER_COLORS = {
   BRONZE: '#CD7F32',
@@ -29,12 +27,8 @@ export default function LoyaltyScreen() {
 
   const loadTierInfo = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/loyalty/tier`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setTierInfo(data);
+      const response = await api.get('/loyalty/tier');
+      setTierInfo(response.data);
     } catch (error) {
       console.error('Error loading tier:', error);
     }
@@ -42,12 +36,8 @@ export default function LoyaltyScreen() {
 
   const loadPointsHistory = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/loyalty/points/history`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setPointsHistory(data);
+      const response = await api.get('/loyalty/points/history');
+      setPointsHistory(response.data);
     } catch (error) {
       console.error('Error loading history:', error);
     }

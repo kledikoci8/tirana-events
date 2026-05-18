@@ -8,9 +8,7 @@ import {
   Image,
   Share,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://192.168.1.6:8080/api';
+import api from '../services/api';
 
 export default function ItineraryPlannerScreen({ navigation }) {
   const [itineraries, setItineraries] = useState([]);
@@ -21,12 +19,8 @@ export default function ItineraryPlannerScreen({ navigation }) {
 
   const loadItineraries = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_URL}/itineraries/my-itineraries`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setItineraries(data);
+      const response = await api.get('/itineraries/my-itineraries');
+      setItineraries(response.data);
     } catch (error) {
       console.error('Error:', error);
     }
