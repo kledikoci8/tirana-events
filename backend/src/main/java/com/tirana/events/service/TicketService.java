@@ -114,18 +114,27 @@ public class TicketService {
         dto.setQrCode(ticket.getQrCode());
         dto.setPurchaseDate(ticket.getPurchaseDate());
         dto.setStatus(ticket.getStatus() != null ? ticket.getStatus().name() : Ticket.TicketStatus.ACTIVE.name());
-        dto.setIsDownloaded(ticket.getIsDownloaded());
+        
+        // FIX C5: Ensure boolean fields are never null
+        dto.setIsDownloaded(ticket.getIsDownloaded() != null ? ticket.getIsDownloaded() : false);
+        dto.setNfcEnabled(ticket.getNfcEnabled() != null ? ticket.getNfcEnabled() : false);
+        
         dto.setDownloadedAt(ticket.getDownloadedAt());
-        dto.setNfcEnabled(ticket.getNfcEnabled());
         dto.setCheckedInAt(ticket.getCheckedInAt());
-        dto.setPrice(ticket.getPrice());
+        
+        // FIX C5: Ensure price is never null
+        dto.setPrice(ticket.getPrice() != null ? ticket.getPrice() : 0.0);
 
         if (ticket.getEvent() != null) {
             Event event = ticket.getEvent();
             dto.setEventId(event.getId());
             dto.setEventName(event.getName());
             dto.setEventDate(event.getStartDate());
-            dto.setEventLocation(event.getVenue() != null ? event.getVenue() : event.getLocation());
+            
+            // FIX C3: Provide consistent location field - use venue if available, otherwise location
+            String location = event.getVenue() != null ? event.getVenue() : event.getLocation();
+            dto.setEventLocation(location != null ? location : "");
+            
             dto.setEventImageUrl(event.getImageUrl());
         }
 

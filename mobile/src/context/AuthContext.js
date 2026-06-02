@@ -11,24 +11,38 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(async () => {
-    // FIX A5: Clear ALL token storage locations to prevent phantom requests
-    // Order matters: clear storage first, then headers, then state
-    
-    // 1. Clear AsyncStorage (persistent storage)
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('refreshToken');
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('onboardingCompleted');
-    
-    // 2. Clear axios default headers (in-memory)
-    delete api.defaults.headers.common['Authorization'];
-    
-    // 3. Clear React state (triggers re-render and navigation)
-    setUser(null);
+    try {
+      // FIX: Clear ALL token storage locations to prevent phantom requests
+      // Order matters: clear storage first, then headers, then state
+      
+      console.log('[Auth] Logging out...');
+      
+      // 1. Clear AsyncStorage (persistent storage)
+      await AsyncStorage.multiRemove([
+        'token',
+        'refreshToken', 
+        'user',
+        'onboardingCompleted'
+      ]);
+      
+      // 2. Clear axios default headers (in-memory)
+      delete api.defaults.headers.common['Authorization'];
+      
+      // 3. Clear React state (triggers re-render and navigation)
+      setUser(null);
+      
+      console.log('[Auth] Logout complete');
+    } catch (error) {
+      console.error('[Auth] Logout error:', error);
+      // Force clear state even if AsyncStorage fails
+      setUser(null);
+      delete api.defaults.headers.common['Authorization'];
+    }
   }, []);
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
+      console.log('[Auth] Unauthorized - triggering logout');
       logout();
     });
     loadUser();
@@ -74,19 +88,41 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/login', { email, password });
       const { token, refreshToken, ...userData } = response.data;
 
+      // Save tokens and user data
       await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('refreshToken', refreshToken);
+      await AsyncStorage.setItem('refreshToken', refreshToken || token);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
 
+      // Set authorization header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
-      await refreshProfile();
+      
+      // Try to refresh profile, but don't fail login if this fails
+      try {
+        await refreshProfile();
+      } catch (profileError) {
+        console.log('[Auth] Profile refresh failed, continuing with login');
+      }
 
       return { success: true };
     } catch (error) {
+      console.error('[Auth] Login error:', error.response?.data || error.message);
+      
+      // Provide specific error messages
+      let errorMessage = 'Login failed';
+      if (error.response?.status === 401) {
+        errorMessage = 'Invalid email or password';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Account is disabled or unauthorized';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Login failed',
+        error: errorMessage,
       };
     }
   };
@@ -100,18 +136,34 @@ export const AuthProvider = ({ children }) => {
       });
       const { token, refreshToken, ...userData } = response.data;
 
+      // Save tokens and user data
       await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('refreshToken', refreshToken);
+      await AsyncStorage.setItem('refreshToken', refreshToken || token);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
 
+      // Set authorization header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
 
       return { success: true };
     } catch (error) {
+      console.error('[Auth] Registration error:', error.response?.data || error.message);
+      
+      // Provide specific error messages
+      let errorMessage = 'Registration failed';
+      if (error.response?.status === 409) {
+        errorMessage = 'Email already exists';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Invalid registration data';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Registration failed',
+        error: errorMessage,
       };
     }
   };

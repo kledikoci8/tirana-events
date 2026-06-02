@@ -24,9 +24,7 @@ public class BadgeService {
     private static final String NIGHT_OWL = "NIGHT_OWL"; // 10 events after 10pm
     private static final String TIRANA_ORIGINAL = "TIRANA_ORIGINAL"; // 20 events attended
     private static final String EARLY_BIRD = "EARLY_BIRD"; // 5 early bird tickets
-    private static final String SOCIAL_BUTTERFLY = "SOCIAL_BUTTERFLY"; // 10 friends invited
     private static final String WEEKEND_WARRIOR = "WEEKEND_WARRIOR"; // 10 weekend events
-    private static final String EXPLORER = "EXPLORER"; // 15 different venues
 
     @Transactional
     public void checkAndAwardBadges(Long userId) {

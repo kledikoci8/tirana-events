@@ -10,6 +10,8 @@ import {
   StatusBar,
   Dimensions,
   ScrollView,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -38,14 +40,54 @@ export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [friendsByEvent, setFriendsByEvent] = useState({});
+  
+  // FIX D1: Add error and loading states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // FIX E3: Add search debouncing to prevent excessive API calls
+  const searchTimeoutRef = useRef(null);
+  
   const scrollY = useSharedValue(0);
   const pulseAnim = useSharedValue(1);
+
+  // FIX D1: Extract loadData function to be reusable
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const categoriesRes = await api.get('/categories');
+      setCategories(categoriesRes.data);
+
+      let list = [];
+      try {
+        const eventsRes = await api.get('/events/recommended?limit=20');
+        list = eventsRes.data;
+      } catch {
+        const eventsRes = await api.get('/events/upcoming');
+        list = eventsRes.data;
+      }
+      setEvents(list);
+      loadFriendsAttending(list);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setError('Failed to load events. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true; // FIX A2: Track mount state to prevent memory leaks
     
-    const loadData = async () => {
+    const initializeData = async () => {
+      // FIX D1: Complete error handling implementation
       try {
+        setLoading(true);
+        setError(null);
+        
         const categoriesRes = await api.get('/categories');
         if (!mounted) return; // FIX A2: Don't update state if unmounted
         setCategories(categoriesRes.data);
@@ -63,10 +105,17 @@ export default function HomeScreen({ navigation }) {
         loadFriendsAttending(list);
       } catch (error) {
         console.error('Error loading data:', error);
+        if (mounted) {
+          setError('Failed to load events. Please check your connection and try again.');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
     
-    loadData();
+    initializeData();
     
     // Pulse animation for notification badge
     pulseAnim.value = withRepeat(
@@ -78,6 +127,10 @@ export default function HomeScreen({ navigation }) {
     // FIX A2: Cleanup function to prevent memory leaks
     return () => {
       mounted = false;
+      // FIX E3: Clear search timeout on unmount
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -111,6 +164,8 @@ export default function HomeScreen({ navigation }) {
       return;
     }
     try {
+      setLoading(true);
+      setError(null);
       const res = await api.post('/filters/events', {
         categoryIds: [categoryId],
         page: 0,
@@ -120,6 +175,9 @@ export default function HomeScreen({ navigation }) {
       loadFriendsAttending(res.data);
     } catch (e) {
       console.error(e);
+      setError('Failed to filter events. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,10 +187,77 @@ export default function HomeScreen({ navigation }) {
       return;
     }
     try {
+      setLoading(true);
+      setError(null);
       const response = await api.get(`/events/search?query=${searchQuery}`);
       setEvents(response.data);
     } catch (error) {
       console.error('Error searching:', error);
+      setError('Search failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // FIX E3: Add debounced search to prevent excessive API calls while typing
+  const handleSearchChange = (text) => {
+    setSearchQuery(text);
+    
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Don't search if query is empty
+    if (!text.trim()) {
+      return;
+    }
+    
+    // Debounce search by 500ms
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.get(`/events/search?query=${text}`);
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error searching:', error);
+        setError('Search failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+  };
+
+  // FIX D1: Add retry functionality
+  const handleRetry = () => {
+    setError(null);
+    loadData();
+  };
+
+  // FIX D1: Add pull-to-refresh functionality
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      const categoriesRes = await api.get('/categories');
+      setCategories(categoriesRes.data);
+
+      let list = [];
+      try {
+        const eventsRes = await api.get('/events/recommended?limit=20');
+        list = eventsRes.data;
+      } catch {
+        const eventsRes = await api.get('/events/upcoming');
+        list = eventsRes.data;
+      }
+      setEvents(list);
+      loadFriendsAttending(list);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setError('Failed to refresh events. Please check your connection.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -199,6 +324,31 @@ export default function HomeScreen({ navigation }) {
         )}
       </TouchableOpacity>
     </Animated.View>
+  );
+
+  // FIX D1: Add loading and error UI components
+  const renderLoadingState = () => (
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color="#8B5CF6" />
+      <Text style={styles.loadingText}>Loading events...</Text>
+    </View>
+  );
+
+  const renderErrorState = () => (
+    <View style={styles.centerContainer}>
+      <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+      <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+      <Text style={styles.errorMessage}>{error}</Text>
+      <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+        <LinearGradient
+          colors={['#8B5CF6', '#6D28D9']}
+          style={styles.retryGradient}
+        >
+          <Ionicons name="refresh" size={20} color="#FFFFFF" />
+          <Text style={styles.retryText}>Try Again</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderEvent = ({ item, index }) => {
@@ -338,123 +488,142 @@ export default function HomeScreen({ navigation }) {
         renderItem={renderEvent}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.eventsList}
+        contentContainerStyle={[
+          styles.eventsList,
+          (loading || error || events.length === 0) && styles.eventsListCentered
+        ]}
         onScroll={(e) => {
           scrollY.value = e.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-        ListHeaderComponent={
-          <>
-            {/* Header */}
-            <Animated.View style={[styles.header, headerAnimatedStyle]}>
-              <View style={styles.headerTop}>
-                <View style={styles.logoWrapper}>
-                  <View style={styles.logoIconWrapper}>
-                    <Ionicons name="calendar" size={20} color="#8B5CF6" />
-                  </View>
-                  <View>
-                    <Text style={styles.logo}>TIRANA</Text>
-                    <Text style={styles.logoSub}>EVENTS</Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  style={styles.notificationButton}
-                  onPress={() => navigation.navigate('NotificationsInbox')}
-                >
-                  <BlurView intensity={20} tint="dark" style={styles.notificationBlur}>
-                    <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-                    <Animated.View style={[styles.notificationBadge, badgeAnimatedStyle]} />
-                  </BlurView>
-                </TouchableOpacity>
-              </View>
-
-              {/* Title Section */}
-              <Animated.View
-                entering={FadeInDown.delay(200).springify()}
-                style={styles.titleSection}
-              >
-                <Text style={styles.title}>What's happening</Text>
-                <View style={styles.titleHighlightContainer}>
-                  <Text style={styles.titleHighlight}>in Tirana </Text>
-                  <Text style={styles.titleHighlight}>today?</Text>
-                  <Ionicons name="flame" size={32} color="#EF4444" style={{ marginLeft: 8 }} />
-                </View>
-              </Animated.View>
-
-              {/* Search Bar */}
-              <Animated.View
-                entering={FadeInDown.delay(300).springify()}
-                style={styles.searchWrapper}
-              >
-                <BlurView intensity={30} tint="dark" style={styles.searchBlur}>
-                  <LinearGradient
-                    colors={['rgba(139,92,246,0.1)', 'rgba(109,40,217,0.05)']}
-                    style={styles.searchContainer}
-                  >
-                    <Ionicons name="search-outline" size={20} color="#8B5CF6" />
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Search events, concerts, festivals..."
-                      placeholderTextColor="#6B7280"
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      onSubmitEditing={handleSearch}
-                    />
-                    <TouchableOpacity
-                      style={styles.filterButton}
-                      onPress={() =>
-                        navigation.navigate('Filter', {
-                          onApplyFilters: (data) => {
-                            setEvents(data);
-                            loadFriendsAttending(data);
-                          },
-                        })
-                      }
-                    >
-                      <LinearGradient
-                        colors={['#8B5CF6', '#6D28D9']}
-                        style={styles.filterGradient}
-                      >
-                        <Ionicons name="options-outline" size={18} color="#FFFFFF" />
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  </LinearGradient>
-                </BlurView>
-              </Animated.View>
-            </Animated.View>
-
-            {/* Categories */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Categories</Text>
-                <TouchableOpacity>
-                  <Text style={styles.seeAll}>See all →</Text>
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                horizontal
-                data={categories}
-                renderItem={renderCategory}
-                keyExtractor={(item) => item.id.toString()}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoriesList}
-              />
-            </View>
-
-            {/* Recommended Events Header */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View>
-                  <Text style={styles.sectionTitle}>Recommended for you</Text>
-                  <Text style={styles.sectionSubtitle}>Based on your interests</Text>
-                </View>
-                <TouchableOpacity>
-                  <Text style={styles.seeAll}>See all →</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </>
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#8B5CF6']}
+            tintColor="#8B5CF6"
+            progressBackgroundColor="#1A0B2E"
+          />
         }
+        ListHeaderComponent={
+          !loading && !error && events.length > 0 ? (
+            <>
+              {/* Header */}
+              <Animated.View style={[styles.header, headerAnimatedStyle]}>
+                <View style={styles.headerTop}>
+                  <View style={styles.logoWrapper}>
+                    <View style={styles.logoIconWrapper}>
+                      <Ionicons name="calendar" size={20} color="#8B5CF6" />
+                    </View>
+                    <View>
+                      <Text style={styles.logo}>TIRANA</Text>
+                      <Text style={styles.logoSub}>EVENTS</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.notificationButton}
+                    onPress={() => navigation.navigate('NotificationsInbox')}
+                  >
+                    <BlurView intensity={20} tint="dark" style={styles.notificationBlur}>
+                      <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+                      <Animated.View style={[styles.notificationBadge, badgeAnimatedStyle]} />
+                    </BlurView>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Title Section */}
+                <Animated.View
+                  entering={FadeInDown.delay(200).springify()}
+                  style={styles.titleSection}
+                >
+                  <Text style={styles.title}>What's happening</Text>
+                  <View style={styles.titleHighlightContainer}>
+                    <Text style={styles.titleHighlight}>in Tirana </Text>
+                    <Text style={styles.titleHighlight}>today?</Text>
+                    <Ionicons name="flame" size={32} color="#EF4444" style={{ marginLeft: 8 }} />
+                  </View>
+                </Animated.View>
+
+                {/* Search Bar */}
+                <Animated.View
+                  entering={FadeInDown.delay(300).springify()}
+                  style={styles.searchWrapper}
+                >
+                  <BlurView intensity={30} tint="dark" style={styles.searchBlur}>
+                    <LinearGradient
+                      colors={['rgba(139,92,246,0.1)', 'rgba(109,40,217,0.05)']}
+                      style={styles.searchContainer}
+                    >
+                      <Ionicons name="search-outline" size={20} color="#8B5CF6" />
+                      <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search events, concerts, festivals..."
+                        placeholderTextColor="#6B7280"
+                        value={searchQuery}
+                        onChangeText={handleSearchChange}
+                        onSubmitEditing={handleSearch}
+                      />
+                      <TouchableOpacity
+                        style={styles.filterButton}
+                        onPress={() =>
+                          navigation.navigate('Filter', {
+                            onApplyFilters: (data) => {
+                              setEvents(data);
+                              loadFriendsAttending(data);
+                            },
+                          })
+                        }
+                      >
+                        <LinearGradient
+                          colors={['#8B5CF6', '#6D28D9']}
+                          style={styles.filterGradient}
+                        >
+                          <Ionicons name="options-outline" size={18} color="#FFFFFF" />
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </BlurView>
+                </Animated.View>
+              </Animated.View>
+
+              {/* Categories */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Categories</Text>
+                  <TouchableOpacity>
+                    <Text style={styles.seeAll}>See all →</Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  horizontal
+                  data={categories}
+                  renderItem={renderCategory}
+                  keyExtractor={(item) => item.id.toString()}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoriesList}
+                />
+              </View>
+
+              {/* Recommended Events Header */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View>
+                    <Text style={styles.sectionTitle}>Recommended for you</Text>
+                    <Text style={styles.sectionSubtitle}>Based on your interests</Text>
+                  </View>
+                  <TouchableOpacity>
+                    <Text style={styles.seeAll}>See all →</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </>
+          ) : null
+        }
+        ListEmptyComponent={() => {
+          if (loading) return renderLoadingState();
+          if (error) return renderErrorState();
+          return renderEmptyState();
+        }}
       />
     </View>
   );
@@ -637,6 +806,68 @@ const styles = StyleSheet.create({
   eventsList: {
     paddingHorizontal: 20,
     paddingBottom: 100,
+  },
+  eventsListCentered: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#8B5CF6',
+    marginTop: 16,
+    fontWeight: '600',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  retryGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   eventCardWrapper: {
     marginBottom: 20,

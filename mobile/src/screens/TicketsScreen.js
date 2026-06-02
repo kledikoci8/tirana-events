@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -19,6 +21,11 @@ export default function TicketsScreen() {
   const [tickets, setTickets] = useState([]);
   const [offline, setOffline] = useState(false);
   const [selectedTab, setSelectedTab] = useState('upcoming');
+  
+  // FIX D2: Add error and loading states for TicketsScreen
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadTickets();
@@ -26,6 +33,8 @@ export default function TicketsScreen() {
 
   const loadTickets = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await api.get('/tickets/my-tickets');
       await cacheTickets(response.data);
       setTickets(response.data);
@@ -37,7 +46,41 @@ export default function TicketsScreen() {
       if (cached.length) {
         setTickets(cached);
         setOffline(true);
+      } else {
+        setError('Failed to load tickets. Please check your connection and try again.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // FIX D2: Add retry functionality
+  const handleRetry = () => {
+    setError(null);
+    loadTickets();
+  };
+
+  // FIX D2: Add pull-to-refresh functionality
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      const response = await api.get('/tickets/my-tickets');
+      await cacheTickets(response.data);
+      setTickets(response.data);
+      setOffline(false);
+      scheduleAllTicketReminders(response.data);
+    } catch (error) {
+      console.error('Error refreshing tickets:', error);
+      const cached = await getCachedTickets();
+      if (cached.length) {
+        setTickets(cached);
+        setOffline(true);
+      } else {
+        setError('Failed to refresh tickets. Please check your connection.');
+      }
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -70,6 +113,31 @@ export default function TicketsScreen() {
     const month = date.toLocaleString('default', { month: 'short' });
     return `${day} ${month}`;
   };
+
+  // FIX D2: Add loading and error UI components
+  const renderLoadingState = () => (
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color="#8B5CF6" />
+      <Text style={styles.loadingText}>Loading your tickets...</Text>
+    </View>
+  );
+
+  const renderErrorState = () => (
+    <View style={styles.centerContainer}>
+      <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+      <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+      <Text style={styles.errorMessage}>{error}</Text>
+      <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+        <LinearGradient
+          colors={['#8B5CF6', '#6D28D9']}
+          style={styles.retryGradient}
+        >
+          <Ionicons name="refresh" size={20} color="#FFFFFF" />
+          <Text style={styles.retryText}>Try Again</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderTicket = ({ item }) => (
     <View style={styles.ticketCard}>
@@ -173,7 +241,11 @@ export default function TicketsScreen() {
           </TouchableOpacity>
         </View>
 
-        {filteredTickets.length === 0 ? (
+        {loading ? (
+          renderLoadingState()
+        ) : error ? (
+          renderErrorState()
+        ) : filteredTickets.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="ticket-outline" size={64} color="#6B7280" />
             <Text style={styles.emptyTitle}>No tickets yet</Text>
@@ -188,6 +260,15 @@ export default function TicketsScreen() {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.ticketsList}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={['#8B5CF6']}
+                tintColor="#8B5CF6"
+                progressBackgroundColor="#1A1A24"
+              />
+            }
           />
         )}
       </LinearGradient>
@@ -358,5 +439,49 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 8,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#8B5CF6',
+    marginTop: 16,
+    fontWeight: '600',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  retryGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
   },
 });

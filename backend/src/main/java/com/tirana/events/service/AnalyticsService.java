@@ -18,8 +18,7 @@ public class AnalyticsService {
     private final EventAnalyticsRepository analyticsRepository;
     private final UserInteractionRepository interactionRepository;
     private final TicketRepository ticketRepository;
-    private final EventRepository eventRepository;
-    
+
     /**
      * Get or create analytics for an event
      */

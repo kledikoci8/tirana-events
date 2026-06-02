@@ -10,7 +10,12 @@ import { View, ActivityIndicator, LogBox } from 'react-native';
 import api from './src/services/api';
 import { linking } from './src/navigation/linking';
 
-LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+// Ignore common development warnings
+LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested',
+  'was not handled by any navigator', // FIX: Suppress navigation reset warning (development only)
+  'Non-serializable values were found in the navigation state',
+]);
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -190,7 +195,15 @@ export default function App() {
         linking={linking}
         onStateChange={(state) => {
           // Log navigation state changes for debugging
-          console.log('Navigation state changed:', state?.routes?.[state.index]?.name);
+          if (__DEV__) {
+            console.log('[Navigation] Current route:', state?.routes?.[state.index]?.name);
+          }
+        }}
+        onUnhandledAction={(action) => {
+          // FIX: Handle unhandled navigation actions gracefully
+          if (__DEV__) {
+            console.warn('[Navigation] Unhandled action:', action);
+          }
         }}
         fallback={
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>

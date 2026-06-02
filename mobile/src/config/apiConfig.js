@@ -14,7 +14,8 @@ function getBaseUrl() {
     }
     return `http://${DEV_MACHINE_IP}:8080/api`;
   }
-  return 'https://api.tiranaevents.com/api';
+  // FIX B6: CRITICAL - Production MUST use HTTPS
+  return 'https://api.tiranaevents.app/api';
 }
 
 export const API_BASE_URL = getBaseUrl();

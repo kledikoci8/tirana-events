@@ -1,5 +1,6 @@
 package com.tirana.events.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -20,7 +21,11 @@ public class EventDTO {
     private String organizerName;
     private Integer maxAttendees;
     private Integer currentAttendees;
+    
+    // FIX C1: Map isSaved to 'saved' in JSON for frontend compatibility
+    @JsonProperty("saved")
     private boolean isSaved;
+    
     private LocalDateTime createdAt;
     
     // Additional fields for specific features

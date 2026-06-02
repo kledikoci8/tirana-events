@@ -86,4 +86,19 @@ public class EventController {
         eventService.unsaveEvent(id, authentication.getName());
         return ResponseEntity.ok().build();
     }
+    
+    // FIX A3: IDOR Protection - Verify ownership before updates
+    @PutMapping("/{id}")
+    public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id,
+                                                @Valid @RequestBody CreateEventRequest request,
+                                                Authentication authentication) {
+        return ResponseEntity.ok(eventService.updateEvent(id, request, authentication.getName()));
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long id,
+                                           Authentication authentication) {
+        eventService.deleteEvent(id, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
 }

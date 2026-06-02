@@ -13,6 +13,8 @@ import com.tirana.events.repository.TicketRepository;
 import com.tirana.events.repository.UserRepository;
 import com.tirana.events.util.SqlUtil;
 import com.tirana.events.util.SanitizationUtil;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,17 +79,15 @@ public class EventService {
 
     public List<EventDTO> getUpcomingEvents(String userEmail, int page, int size) {
         User user = resolveUser(userEmail);
-        List<Event> events = eventRepository.findUpcomingEvents(LocalDateTime.now());
         
-        // Manual pagination
-        int start = page * size;
-        int end = Math.min(start + size, events.size());
+        // FIX E1: Add pagination at database level using Spring Data Pageable
+        Pageable pageable = PageRequest.of(page, size);
+        List<Event> events = eventRepository.findUpcomingEventsWithPagination(
+            LocalDateTime.now(), 
+            pageable
+        );
         
-        if (start >= events.size()) {
-            return List.of();
-        }
-        
-        return events.subList(start, end).stream()
+        return events.stream()
                 .map(e -> convertToDTO(e, user))
                 .collect(Collectors.toList());
     }
@@ -128,17 +128,12 @@ public class EventService {
         
         // FIX A4: Escape LIKE wildcards to prevent wildcard injection attacks
         String escapedQuery = SqlUtil.escapeLikePattern(query);
-        List<Event> events = eventRepository.searchEvents(escapedQuery);
         
-        // Manual pagination
-        int start = page * size;
-        int end = Math.min(start + size, events.size());
+        // FIX E1: Add pagination at database level using Spring Data Pageable
+        Pageable pageable = PageRequest.of(page, size);
+        List<Event> events = eventRepository.searchEventsWithPagination(escapedQuery, pageable);
         
-        if (start >= events.size()) {
-            return List.of();
-        }
-        
-        return events.subList(start, end).stream()
+        return events.stream()
                 .map(e -> convertToDTO(e, user))
                 .collect(Collectors.toList());
     }
@@ -180,8 +175,10 @@ public class EventService {
         dto.setEndDate(event.getEndDate());
         dto.setImageUrl(event.getImageUrl());
         dto.setCreatedAt(event.getCreatedAt());
-        dto.setPrice(event.getPrice());
-        dto.setIsFree(event.getIsFree());
+        
+        dto.setPrice(event.getPrice() != null ? event.getPrice() : 0.0);
+        dto.setIsFree(event.getIsFree() != null ? event.getIsFree() : (event.getPrice() == null || event.getPrice() == 0.0));
+        
         dto.setVenue(event.getVenue());
         dto.setStartTime(event.getStartTime());
         dto.setEndTime(event.getEndTime());
@@ -197,8 +194,12 @@ public class EventService {
         }
 
         dto.setMaxAttendees(event.getMaxAttendees());
-        dto.setCurrentAttendees(ticketRepository.countByEvent(event).intValue());
-        dto.setSaved(user != null && user.getSavedEvents().contains(event));
+        
+        Long attendeeCount = ticketRepository.countByEvent(event);
+        dto.setCurrentAttendees(attendeeCount != null ? attendeeCount.intValue() : 0);
+        
+        dto.setSaved(user != null && user.getSavedEvents() != null && user.getSavedEvents().contains(event));
+        
         return dto;
     }
 
@@ -207,5 +208,58 @@ public class EventService {
             return null;
         }
         return userRepository.findByEmail(userEmail).orElse(null);
+    }
+    
+    // FIX A3: IDOR Protection - Only allow event updates by the organizer
+    @Transactional
+    public EventDTO updateEvent(Long eventId, CreateEventRequest request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event not found"));
+        
+        // CRITICAL: Verify the user is the organizer
+        if (!event.getOrganizer().getId().equals(user.getId())) {
+            throw new com.tirana.events.exception.ForbiddenException(
+                "You can only update events that you organize");
+        }
+        
+        // Update event fields
+        event.setName(SanitizationUtil.sanitizeText(request.getName()));
+        event.setDescription(SanitizationUtil.sanitizeHtml(request.getDescription()));
+        event.setLocation(SanitizationUtil.sanitizeText(request.getLocation()));
+        event.setLatitude(request.getLatitude());
+        event.setLongitude(request.getLongitude());
+        event.setStartDate(request.getStartDate());
+        event.setEndDate(request.getEndDate());
+        event.setImageUrl(request.getImageUrl());
+        
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new NotFoundException("Category not found"));
+            event.setCategory(category);
+        }
+        
+        event = eventRepository.save(event);
+        return convertToDTO(event, user);
+    }
+    
+    // FIX A3: IDOR Protection - Only allow event deletion by the organizer
+    @Transactional
+    public void deleteEvent(Long eventId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event not found"));
+        
+        // CRITICAL: Verify the user is the organizer
+        if (!event.getOrganizer().getId().equals(user.getId())) {
+            throw new com.tirana.events.exception.ForbiddenException(
+                "You can only delete events that you organize");
+        }
+        
+        eventRepository.delete(event);
     }
 }

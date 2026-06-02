@@ -9,7 +9,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "events")
+@Table(name = "events", indexes = {
+    // FIX E2: Add database indexes for frequently queried columns
+    @Index(name = "idx_event_start_date", columnList = "startDate"),
+    @Index(name = "idx_event_category_id", columnList = "category_id"),
+    @Index(name = "idx_event_organizer_id", columnList = "organizer_id"),
+    @Index(name = "idx_event_location", columnList = "location"),
+    @Index(name = "idx_event_created_at", columnList = "createdAt"),
+    @Index(name = "idx_event_name", columnList = "name")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

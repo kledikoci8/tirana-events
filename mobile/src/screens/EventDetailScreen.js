@@ -10,6 +10,7 @@ import {
   Dimensions,
   Alert,
   Share,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -41,6 +42,10 @@ export default function EventDetailScreen({ route, navigation }) {
   const [event, setEvent] = useState(null);
   const [friendsAttending, setFriendsAttending] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // FIX D3: Add error handling states for EventDetailScreen
+  const [error, setError] = useState(null);
+  
   const scrollY = useSharedValue(0);
   const scale = useSharedValue(1);
 
@@ -50,6 +55,8 @@ export default function EventDetailScreen({ route, navigation }) {
 
   const loadEvent = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await api.get(`/events/${eventId}`);
       setEvent(response.data);
       trackEventView(eventId);
@@ -61,10 +68,16 @@ export default function EventDetailScreen({ route, navigation }) {
       }
     } catch (error) {
       console.error('Error loading event:', error);
-      Alert.alert('Error', 'Failed to load event details');
+      setError('Failed to load event details. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // FIX D3: Add retry functionality
+  const handleRetry = () => {
+    setError(null);
+    loadEvent();
   };
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -172,14 +185,60 @@ export default function EventDetailScreen({ route, navigation }) {
     });
   };
 
-  if (loading || !event) {
+  if (loading || error) {
     return (
       <View style={[styles.container, styles.centered]}>
         <LinearGradient
           colors={['#0A0A0F', '#1A0B2E', '#0A0A0F']}
           style={StyleSheet.absoluteFill}
         />
-        <Text style={styles.loadingText}>Loading...</Text>
+        {loading ? (
+          <>
+            <ActivityIndicator size="large" color="#8B5CF6" />
+            <Text style={styles.loadingText}>Loading event details...</Text>
+          </>
+        ) : (
+          <>
+            <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+            <Text style={styles.errorMessage}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+              <LinearGradient
+                colors={['#8B5CF6', '#6D28D9']}
+                style={styles.retryGradient}
+              >
+                <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                <Text style={styles.retryText}>Try Again</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    );
+  }
+
+  if (!event) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <LinearGradient
+          colors={['#0A0A0F', '#1A0B2E', '#0A0A0F']}
+          style={StyleSheet.absoluteFill}
+        />
+        <Ionicons name="calendar-outline" size={64} color="#6B7280" />
+        <Text style={styles.errorTitle}>Event not found</Text>
+        <Text style={styles.errorMessage}>This event may have been removed or doesn't exist.</Text>
+        <TouchableOpacity 
+          style={styles.retryButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <LinearGradient
+            colors={['#8B5CF6', '#6D28D9']}
+            style={styles.retryGradient}
+          >
+            <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+            <Text style={styles.retryText}>Go Back</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -574,8 +633,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: '#8B5CF6',
     fontSize: 16,
+    marginTop: 16,
+    fontWeight: '600',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 40,
+  },
+  retryButton: {
+    marginTop: 24,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  retryGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
   },
   headerImageContainer: {
     position: 'absolute',
