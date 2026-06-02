@@ -180,9 +180,10 @@ public class EventService {
         dto.setIsFree(event.getIsFree() != null ? event.getIsFree() : (event.getPrice() == null || event.getPrice() == 0.0));
         
         dto.setVenue(event.getVenue());
-        dto.setStartTime(event.getStartTime());
-        dto.setEndTime(event.getEndTime());
+        // CLEANUP #2: Removed setStartTime() and setEndTime() calls
+        // These fields don't exist in Event model and were always null
         dto.setIsOutdoor(event.getIsOutdoor());
+
 
         if (event.getCategory() != null) {
             dto.setCategoryId(event.getCategory().getId());

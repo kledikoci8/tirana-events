@@ -90,9 +90,15 @@ api.interceptors.response.use(
           refreshToken
         });
 
-        const { token: newToken } = response.data;
+        const { token: newToken, refreshToken: newRefreshToken } = response.data;
         
+        // FIX BUG #1: Save BOTH new access token AND new refresh token
+        // Backend rotates refresh tokens, so we must save the new one
         await AsyncStorage.setItem('token', newToken);
+        if (newRefreshToken) {
+          await AsyncStorage.setItem('refreshToken', newRefreshToken);
+        }
+        
         api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
         

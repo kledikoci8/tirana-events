@@ -97,7 +97,8 @@ public class DynamicPricingService {
         price.setPrice(lastMinutePrice);
         price.setPriceType("LAST_MINUTE");
         price.setValidFrom(LocalDateTime.now());
-        price.setValidUntil(event.getStartTime());
+        // CLEANUP #2: Use startDate instead of startTime
+        price.setValidUntil(event.getStartDate());
         price.setIsActive(true);
 
         priceRepository.save(price);

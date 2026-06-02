@@ -22,8 +22,9 @@ public class EventDTO {
     private Integer maxAttendees;
     private Integer currentAttendees;
     
-    // FIX C1: Map isSaved to 'saved' in JSON for frontend compatibility
-    @JsonProperty("saved")
+    // FIX BUG #2: Change JSON property to "isSaved" to match frontend expectations
+    // Frontend uses item.isSaved everywhere, so backend JSON should match
+    @JsonProperty("isSaved")
     private boolean isSaved;
     
     private LocalDateTime createdAt;
@@ -32,7 +33,8 @@ public class EventDTO {
     private Double price;
     private Boolean isFree;
     private String venue;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    // CLEANUP #2: Removed startTime and endTime fields
+    // They were always null because Event model doesn't have these fields
+    // Use startDate and endDate instead
     private Boolean isOutdoor;
 }

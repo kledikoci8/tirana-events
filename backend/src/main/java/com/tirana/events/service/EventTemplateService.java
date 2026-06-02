@@ -61,9 +61,9 @@ public class EventTemplateService {
         event.setLatitude(template.getLatitude());
         event.setLongitude(template.getLongitude());
         event.setStartDate(request.getStartTime());
-        event.setStartTime(request.getStartTime());
+        // CLEANUP #2: Removed setStartTime() - Event model doesn't have this field
         event.setEndDate(request.getEndTime());
-        event.setEndTime(request.getEndTime());
+        // CLEANUP #2: Removed setEndTime() - Event model doesn't have this field
         event.setImageUrl(request.getImageUrl());
         event.setPrice(template.getPrice());
         event.setIsFree(template.getIsFree());

@@ -36,9 +36,9 @@ public class HappeningNowService {
         dto.setId(event.getId());
         dto.setName(event.getName());
         dto.setImageUrl(event.getImageUrl());
-        dto.setStartTime(event.getStartTime());
+        // CLEANUP #2: Removed setStartTime() - EventDTO doesn't have this field
         
-        long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), event.getStartTime());
+        long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), event.getStartDate());
         dto.setMinutesUntilStart((int) minutes);
         
         dto.setVenue(event.getVenue());

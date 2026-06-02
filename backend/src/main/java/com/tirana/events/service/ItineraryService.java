@@ -110,8 +110,9 @@ public class ItineraryService {
     private Integer calculateTotalDuration(List<Event> events) {
         int total = 0;
         for (Event event : events) {
-            if (event.getStartTime() != null && event.getEndTime() != null) {
-                total += (int) ChronoUnit.MINUTES.between(event.getStartTime(), event.getEndTime());
+            // CLEANUP #2: Use startDate and endDate instead of startTime/endTime
+            if (event.getStartDate() != null && event.getEndDate() != null) {
+                total += (int) ChronoUnit.MINUTES.between(event.getStartDate(), event.getEndDate());
             }
         }
         return total;
@@ -122,8 +123,7 @@ public class ItineraryService {
         dto.setId(event.getId());
         dto.setName(event.getName());
         dto.setImageUrl(event.getImageUrl());
-        dto.setStartTime(event.getStartTime());
-        dto.setEndTime(event.getEndTime());
+        // CLEANUP #2: Removed setStartTime() and setEndTime() - EventDTO doesn't have these fields
         dto.setVenue(event.getVenue());
         dto.setPrice(event.getPrice());
         return dto;

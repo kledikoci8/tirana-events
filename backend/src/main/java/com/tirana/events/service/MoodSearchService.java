@@ -168,7 +168,7 @@ public class MoodSearchService {
         dto.setName(event.getName());
         dto.setDescription(event.getDescription());
         dto.setImageUrl(event.getImageUrl());
-        dto.setStartTime(event.getStartTime());
+        // CLEANUP #2: Removed setStartTime() - EventDTO doesn't have this field anymore
         dto.setVenue(event.getVenue());
         dto.setPrice(event.getPrice());
         return dto;
